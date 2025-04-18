@@ -1,16 +1,10 @@
-import configparser
-import os
-import re
-
-from file_forward import core
 from file_forward.util import human_split
 
-APP = 'file_forward'
-CONFIG_VAR = 'FILE_FORWARD_CONFIG'
+from .const import APP
 
-class InstantiateConfig:
+class InstanceConfig:
 
-    def __init__(self, named_items):
+    def __init__(self, named_items, get_context=None):
         """
         :param named_items:
             List of pairs (key, prefix). The key is to a name in the app config
@@ -18,14 +12,15 @@ class InstantiateConfig:
             values in the app config.
         """
         self.named_items = named_items
+        self.get_context = get_context
 
     def __call__(self, cp):
+        """
+        Return dict of named instances from configparser file.
+        """
         context = {}
-        context['str'] = str
-        context['int'] = int
-        context['re'] = re
-        context.update(core._context())
-
+        if callable(self.get_context):
+            context.update(self.get_context())
         result = {}
         for key, prefix in self.named_items:
             instances = named_instances(cp, key, prefix, context)
@@ -33,29 +28,6 @@ class InstantiateConfig:
             context[key] = instances
         return result
 
-
-def from_args(args):
-    """
-    Return config parser from command line arguments.
-    """
-    cp = configparser.ConfigParser()
-
-    if args.config:
-        # Read from command line arguments.
-        for filename in args.config:
-            if not os.path.exists(filename):
-                raise FileNotFoundError(f'Config not found {filename!r}')
-        cp.read(args.config)
-    elif CONFIG_VAR in os.environ:
-        # Read optional environment variable.
-        filename = os.environ[CONFIG_VAR]
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f'Config not found {filename!r}')
-        cp.read(filename)
-    else:
-        raise ValueError('Unable to find configuration files.')
-
-    return cp
 
 def safer_eval(expr, context):
     return eval(expr, {'__builtins__': {}}, context)

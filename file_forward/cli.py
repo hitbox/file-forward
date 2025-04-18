@@ -1,8 +1,11 @@
 import argparse
+import re
 
 from file_forward import config
+from file_forward import core
 from file_forward import runner
 from file_forward.config import CONFIG_VAR
+from file_forward.config.instance import InstanceConfig
 
 def argument_parser():
     """
@@ -21,6 +24,23 @@ def argument_parser():
     )
     return parser
 
+def get_runconfig(cp):
+    ic = InstanceConfig(
+        named_items = [
+            ('patterns', 'pattern.'),
+            ('schemas', 'schema.'),
+            ('sources', 'source.'),
+        ],
+        get_context = lambda: {
+            'str': str,
+            'int': int,
+            're': re,
+            **core._context(),
+        },
+    )
+    runconfig = ic(cp)
+    return runconfig
+
 def main(argv=None):
     """
     Command line entry point.
@@ -29,14 +49,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     cp = config.from_args(args)
-
-    named_items = [
-        ('patterns', 'pattern.'),
-        ('schemas', 'schema.'),
-        ('sources', 'source.'),
-    ]
-    ic = config.InstantiateConfig(named_items)
-    runconfig = ic(cp)
+    runconfig = get_runconfig(cp)
 
     from pprint import pprint
     for source_name, source in runconfig['sources'].items():
