@@ -1,2 +1,0 @@
-APP = 'file_forward'
-CONFIG_VAR = 'FILE_FORWARD_CONFIG'

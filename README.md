@@ -1,6 +1,10 @@
-# Sketch
+# file-forward
 
-1. List files from a source.
-2. Parse filename for data.
-   a. May need to scrape files.
-3. Build IBM MQ message and send with file.
+Read files matching a pattern from a source and write output somewhere.
+
+# Install
+
+## Requirements
+
+- IBM MQ Client
+- pymqi

@@ -17,5 +17,4 @@ def main(argv=None):
     processes = getattr(appconfig, 'PROCESSES')
 
     for process_name, process in processes.items():
-        print(process_name)
-        print(process())
+        process(process_name)
