@@ -1,7 +1,11 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class Process:
     """
-    Take source files that have not been archive and write some kind of output;
-    and save the path as processed.
+    Take source files that have not been archived and write some kind of
+    output; and save the path as processed.
     """
 
     def __init__(self, source, archive, output, save_per_file=True):
@@ -23,7 +27,8 @@ class Process:
 
     def __call__(self, process_name):
         """
-        Read source, write output and save archive.
+        For each source_result produced by the `source` object, write some kind
+        of output and archive.
         """
         for source_result in self.source:
             # Check if source already archived.
@@ -43,3 +48,5 @@ class Process:
         if not self.save_per_file:
             # Save archive after all source files.
             self.archive.save()
+
+        logger.info('%s finished', process_name)

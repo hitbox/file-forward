@@ -1,5 +1,7 @@
 import datetime
 
+from file_forward.lido.leg_identifier_field import LegIdentifierField
+
 class Schema:
     """
     Run callables against existing data keys and then run extra keys against

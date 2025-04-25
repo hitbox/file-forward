@@ -1,7 +1,5 @@
 import pymqi
 
-from file_forward.util import bitwise_or
-
 class MQClient:
     """
     IBM MQ Client.
@@ -15,8 +13,10 @@ class MQClient:
         queue_name,
         ssl_key_repository,
         certificate_label,
-        cipher,
-        queue_options,
+        user_id = None,
+        cipher_spec = None,
+        queue_options = None,
+        confirm_query_manager = None,
     ):
         self.host = host
         self.port = port
@@ -25,11 +25,13 @@ class MQClient:
         self.queue_name = queue_name
         self.ssl_key_repository = ssl_key_repository
         self.certificate_label = certificate_label
-        self.cipher = cipher
+        self.user_id = user_id
+        self.cipher_spec = cipher_spec
         self.queue_options = queue_options
+        self.confirm_query_manager = confirm_query_manager
 
-        self.queue = None
-        self.queue_manager = None
+        self._queue = None
+        self._queue_manager = None
 
     def connection_info(self):
         """
@@ -47,8 +49,14 @@ class MQClient:
             ConnectionName = conn_info.encode(),
             ChannelType = pymqi.CMQC.MQCHT_CLNTCONN,
             TransportType = pymqi.CMQC.MQXPT_TCP,
-            SSLCipherSpec = self.cipher.encode(),
         )
+
+        if self.cipher_spec:
+            channel_definition.SSLCipherSpec = self.cipher_spec.encode()
+
+        if self.user_id:
+            channel_definition.UserIdentifier = self.user_id.encode()
+
         return channel_definition
 
     def get_ssl_config_options(self):
@@ -61,124 +69,124 @@ class MQClient:
         )
         return ssl_config_options
 
+    def inquire(self, queue_manager):
+        keys = [
+            # Server's platform.
+            'pymqi.CMQC.MQIA_PLATFORM',
+            # Queue manager's name.
+            'pymqi.CMQC.MQCA_Q_MGR_NAME',
+            # Default dead letter queue.
+            'pymqi.CMQC.MQCA_DEAD_LETTER_Q_NAME',
+            # Max message length.
+            'pymqi.CMQC.MQIA_MAX_MSG_LENGTH',
+            # Command level (supported features) basically the version.
+            'pymqi.CMQC.MQIA_COMMAND_LEVEL',
+        ]
+        def _inquire(key):
+            value = queue_manager.inquire(eval(key))
+            if isinstance(value, bytes):
+                value = value.decode().strip()
+            return value
+        result = {key: _inquire(key) for key in keys}
+        return result
+
+    def raise_for_query_manager(self, queue_manager):
+        # Inquire query manager to confirm assumptions.
+        results = {}
+        for attribute, expect in self.confirm_query_manager.items():
+            if isinstance(attribute, str):
+                attribute_value = eval(attribute)
+            else:
+                attribute_value = attribute
+            result = queue_manager.inquire(attribute_value)
+            if isinstance(expect, str):
+                result = result.decode().strip()
+            results[attribute] = result
+
+        for key, expect in self.confirm_query_manager.items():
+            # Raise for unexpected result.
+            if results[key] != expect:
+                raise ValueError(
+                    f'Query manager confirmation failed for {key}, expected'
+                    f' {expect}, got {results[key]!r}.')
+
     def get_queue_manager(self, channel_definition=None, ssl_config_options=None):
         """
         QueueManager object.
         """
         if channel_definition is None:
             channel_definition = self.get_channel_definition()
+
         if ssl_config_options is None:
             ssl_config_options = self.get_ssl_config_options()
-        queue_manager = pymqi.QueueManager(None)
+
+        # Defer connect with name = None.
+        queue_manager = pymqi.QueueManager(name=None)
+
         queue_manager.connect_with_options(
             self.queue_manager_name,
             cd = channel_definition,
             sco = ssl_config_options,
         )
+
+        if self.confirm_query_manager:
+            self.raise_for_query_manager(queue_manager)
+
         return queue_manager
-
-    def put(self, message, md=None):
-        """
-        Put a message on the connected queue.
-        """
-        if md is None:
-            md = pymqi.MD()
-        self.queue.put(message, md)
-        return md
-
-    def commit(self):
-        self.queue_manager.commit()
 
     def get_queue(self, queue_manager=None):
         if queue_manager is None:
-            queue_manager = self.queue_manager
-        queue = pymqi.Queue(queue_manager, self.queue_name, self.queue_options)
+            queue_manager = self._queue_manager
+
+        args = [self.queue_name]
+        if self.queue_options is not None:
+            args.append(self.queue_options)
+
+        queue = pymqi.Queue(queue_manager, *args)
         return queue
 
     def connect(self):
         """
         Connect to queue from configuration. Return None.
         """
-        self.queue_manager = self.get_queue_manager()
-        self.queue = self.get_queue()
+        self._queue_manager = self.get_queue_manager()
+        self._queue = self.get_queue()
 
     def __enter__(self):
+        """
+        Enter context manager.
+        """
         self.connect()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.queue:
-            self.queue.close()
-        if self.queue_manager:
-            self.queue_manager.disconnect()
+        """
+        Exit context manager, closing everything.
+        """
+        if self._queue:
+            self._queue.close()
+        if self._queue_manager:
+            self._queue_manager.disconnect()
 
+    def put(self, message, msg_desc=None, put_opts=None):
+        """
+        Put a message on the connected queue.
+        """
+        if msg_desc is None:
+            # Fresh message descriptor if not given one.
+            msg_desc = pymqi.MD()
+            if self.user_id:
+                msg_desc.UserIdentifier = self.user_id.encode()
 
-def inquire_queue(queue_manager, queue_name):
-    args = {
-        pymqi.CMQC.MQCA_Q_NAME: queue_name,
-        pymqi.CMQC.MQIA_CURRENT_Q_DEPTH: None,
-        pymqi.CMQC.MQIA_MAX_MSG_LENGTH: None,
-        pymqi.CMQC.MQIA_Q_TYPE: None,
-        pymqi.CMQC.MQIA_INHIBIT_GET: None,
-        pymqi.CMQC.MQIA_INHIBIT_PUT: None,
-    }
+        if put_opts is None:
+            # Put Message Options
+            put_opts = pymqi.PMO()
 
-    pcf = pymqi.PCFExecute(queue_manager)
-    response = pcf.MQCMD_INQUIRE_Q(args)
+        self._queue.put(message, msg_desc, put_opts)
+        return msg_desc
 
-    # There's usually only one result
-    queue_info = response[0]
-    for k, v in queue_info.items():
-        print(f'{pymqi.CMQC.lookup(k)}: {v}')
-
-def test_list_queue(queue):
-    message_descriptor = pymqi.MD()
-    get_message_options = pymqi.GMO()
-    get_message_options.Options = pymqi.CMQC.MQGMO_BROWSE_FIRST + pymqi.CMQC.MQGMO_NO_WAIT
-    while True:
-        try:
-            msg = queue.get()
-            print("Message:", msg)
-        except pymqi.MQMIError as e:
-            if e.reason == pymqi.CMQC.MQRC_NO_MSG_AVAILABLE:
-                print("No more messages.")
-                break
-            else:
-                raise
-
-def test_watch_queue(queue):
-    message_descriptor = pymqi.MD()
-    get_message_options = pymqi.GMO()
-
-    # NOTES:
-    # - WAIT and BROWSE are different and incompatible.
-
-    get_options_first = (
-        pymqi.CMQC.MQGMO_WAIT
-        | pymqi.CMQC.MQGMO_BROWSE_FIRST
-        #| pymqi.CMQC.MQGMO_BROWSE_NEXT
-        | pymqi.CMQC.MQGMO_FAIL_IF_QUIESCING
-        #| pymqi.CMQC.MQGMO_NO_WAIT
-    )
-
-    get_options_next = (
-        pymqi.CMQC.MQGMO_WAIT
-        | pymqi.CMQC.MQGMO_BROWSE_NEXT
-        | pymqi.CMQC.MQGMO_FAIL_IF_QUIESCING
-    )
-
-    get_message_options.Options = reduce(operator.or_, [
-    ])
-    get_message_options.WaitInterval = 1000 # 1 second
-
-    # Apparently max_length = None, do *NOT* mean get any length.
-    max_length = 4096
-    while True:
-        try:
-            message = queue.get(max_length, message_descriptor, get_message_options)
-            get_message_options.Options = get_options_next
-        except pymqi.MQMIError as e:
-            if e.reason == pymqi.CMQC.MQRC_NO_MSG_AVAILABLE:
-                print('No messages.')
-            else:
-                raise
+    def commit(self):
+        """
+        Commit writes.
+        """
+        self._queue_manager.commit()
