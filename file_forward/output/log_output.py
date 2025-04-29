@@ -1,5 +1,7 @@
 import logging
 
+from file_forward.lido import LCBMessage
+
 from .base import OutputBase
 
 logger = logging.getLogger(__name__)
@@ -14,7 +16,10 @@ class LogOutput(OutputBase):
         self.summarize_data = summarize_data
 
     def __call__(self, source_result):
-        lcb_message = source_result.as_lcb_message()
+        """
+        Log source_result object as if it were written to some output.
+        """
+        lcb_message = LCBMessage.from_source_result(source_result)
 
         source_string = source_result.log_entry()
 

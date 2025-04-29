@@ -1,38 +1,52 @@
 import os
 
+from collections import namedtuple
 from pprint import pformat
 
-from file_forward.lido import LCBMessage
 from file_forward.util import normalize_path
 from file_forward.util import zip_bytes
 
-class SourceResult:
+class SourceResult(
+    namedtuple(
+        'SourceResult',
+        field_names = [
+            'client',
+            'path',
+            'path_data',
+            'file_data',
+            'posix',
+        ],
+        defaults = [
+            False, # posix
+        ]
+    ),
+):
     """
     Consistent object for result of source objects.
     """
 
-    def __init__(self, client, path, path_data, file_data, posix=False):
-        self.client = client
-        self.path = path
-        self.path_data = path_data
-        self.file_data = file_data
-        self.posix = posix
-
     @property
     def normalized_fullpath(self):
-        return normalize_path(self.path, posix=self.posix)
+        return normalize_path(self.path, self.posix)
+
+    @property
+    def directory(self):
+        return normalize_path(self.directory, self.posix)
+
+    @property
+    def filename(self):
+        return normalize_path(os.path.basename(self.path), self.posix)
+
+    def _asdict(self):
+        # TODO
+        # - Add more data for context to output classes.
+        return super()._asdict()
 
     def ppstring(self):
-        directory = normalize_path(self.directory, self.posix)
-        filename = normalize_path(self.filename, self.posix)
-        return pformat([directory, filename, self.path_data])
+        return pformat([self.directory, self.filename, self.path_data])
 
     def zip_file_data(self):
-        filename = os.path.basename(self.path)
-        return zip_bytes(self.file_data, filename)
-
-    def as_lcb_message(self):
-        return LCBMessage.from_source_result(self)
+        return zip_bytes(self.file_data, self.filename)
 
     def log_entry(self):
         return f'{self.client.name}:{self.normalized_fullpath}'

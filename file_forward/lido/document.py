@@ -1,12 +1,9 @@
-import logging
 import mimetypes
 import os
 
 from collections import namedtuple
 
 from .base import LidoBase
-
-logger = logging.getLogger(__name__)
 
 class Document(
     namedtuple(
@@ -41,6 +38,7 @@ class Document(
         source_result,
         doc_key = 'LCB',
         media_type = None,
+        context = None,
     ):
         """
         LCB -> Load Control Briefing
@@ -48,7 +46,10 @@ class Document(
         :param media_type:
             If None, guess media type.
         """
-        filename = os.path.basename(source_result.path)
+        if context and 'filename' in context:
+            filename = context['filename'].format(**source_result._asdict())
+        else:
+            filename = source_result.filename
 
         if media_type is None:
             media_type, _ = mimetypes.guess_type(filename)

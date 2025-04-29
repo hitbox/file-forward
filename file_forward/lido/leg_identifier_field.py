@@ -39,11 +39,11 @@ class LegIdentifierField(
     }
 
     @classmethod
-    def from_source_result(cls, source_result):
-        return cls.from_opticlimb(source_result.path_data)
+    def from_source_result(cls, source_result, context):
+        return cls.from_opticlimb(source_result.path_data, context)
 
     @classmethod
-    def from_opticlimb(cls, data):
+    def from_opticlimb(cls, data, context):
         """
         LegIdentifierField from scraped and typed OptiClimb data.
         """
