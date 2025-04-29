@@ -18,8 +18,8 @@ class XMLMessage(MessageBase):
         """
         Return flat or nested header string, as configured.
         """
-        header_fields = lcb_message.get_header_fields(lcb_message)
-        property_fields = lcb_message.get_property_fields(lcb_message)
+        header_fields = lcb_message.get_header_fields()
+        property_fields = lcb_message.get_property_fields()
 
         header_elements = [element_with_text(key, str(val)) for key, val in header_fields.items()]
         property_elements = [element_with_text(key, str(val)) for key, val in property_fields.items()]
