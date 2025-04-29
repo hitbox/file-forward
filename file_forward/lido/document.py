@@ -1,37 +1,59 @@
-import json
+import logging
+import mimetypes
+import os
 
-class Document:
+from collections import namedtuple
 
-    def __init__(self, doc_key, file_name, media_type):
-        """
-        :param doc_key:
-            Unique document identifier in scope of briefing package
-        :param file_name:
-            File name of the document in the ZIP archive
-        :param media_type:
-            Media type of the document. Supported types are: "text/plain",
-            "application/pdf"
-        """
-        self.doc_key = doc_key
-        self.file_name = file_name
-        self.media_type = media_type
+from .base import LidoBase
+
+logger = logging.getLogger(__name__)
+
+class Document(
+    namedtuple(
+        'Document',
+        field_names = [
+            'doc_key',
+            'file_name',
+            'media_type',
+        ],
+    ),
+    LidoBase,
+):
+    """
+    :param doc_key:
+        Unique document identifier in scope of briefing package
+    :param file_name:
+        File name of the document in the ZIP archive
+    :param media_type:
+        Media type of the document. Supported types are: "text/plain",
+        "application/pdf"
+    """
+
+    rename_fields = {
+        'doc_key': 'docKey',
+        'file_name': 'fileName',
+        'media_type': 'mediaType',
+    }
 
     @classmethod
-    def from_source_result(cls, source_result):
-        return cls(
-            doc_key = 'LCB',
-            file_name = source_result.filename,
-            media_type = 'application/pdf',
-        )
-
-    def as_dict(self):
-        return {
-            'docKey': self.doc_key,
-            'fileName': self.file_name,
-            'mediaType': self.media_type,
-        }
-
-    def as_json_string(self):
+    def from_source_result(
+        cls,
+        source_result,
+        doc_key = 'LCB',
+        media_type = None,
+    ):
         """
+        LCB -> Load Control Briefing
+
+        :param media_type:
+            If None, guess media type.
         """
-        return json.dumps(self.as_dict())
+        filename = os.path.basename(source_result.path)
+
+        if media_type is None:
+            media_type, _ = mimetypes.guess_type(filename)
+            if media_type is None:
+                raise ValueError(
+                    f'Could not guess MIME type for: {filename}')
+
+        return cls(doc_key, filename, media_type)

@@ -1,65 +1,32 @@
-import json
-import xml.etree.ElementTree as ET
+from collections import namedtuple
 
 from .document import Document
 from .leg_identifier_field import LegIdentifierField
+from .base import LidoBase
 
-class LidoMetaProperty:
+class LidoMetaProperty(
+    namedtuple(
+        'LidoMetaProperty',
+        field_names = ['leg_identifier', 'documents'],
+    ),
+    LidoBase,
+):
     """
-    Example:
-    {
-      "legIdentifier": "2H.761.02Aug2019.FRA.MUC.L",
-      "documents": [
-        {
-          "docKey": "TLR",
-          "fileName": "TLR2.txt",
-          "mediaType": "text/plain"
-        },
-        {
-          "docKey": "APTMAP",
-          "fileName": "FRA.pdf",
-          "mediaType": "application/pdf"
-        },
-        {
-          "docKey": "DOWI",
-          "delete": true
-        }
-      ]
-    }
+    :param leg_identifier: LegIdentifierField instance.
+    :param documents: List of Document instances.
     """
-
-    def __init__(self, leg_identifier, documents):
-        """
-        :param leg_identifier:
-            LegIdentifierField instance.
-        :param documents:
-            List of Document instances.
-        """
-        self.leg_identifier = leg_identifier
-        self.documents = documents
 
     @classmethod
     def from_source_result(cls, source_result):
+        """
+        Return instance of LidoMetaProperty from source_result object.
+        """
         instance = cls(
-            leg_identifier = LegIdentifierField.from_opticlimb(
-                source_result.path_data,
+            leg_identifier = LegIdentifierField.from_source_result(
+                source_result,
             ),
             documents = [
                 Document.from_source_result(source_result),
             ],
         )
         return instance
-
-    def as_dict(self):
-        return {
-            'legIdentifier': self.leg_identifier.as_string(),
-            'documents': [document.as_dict() for document in self.documents],
-        }
-
-    def as_json_string(self):
-        return json.dumps(self.as_dict())
-
-    def as_xml(self):
-        element = ET.Element('LidoMeta')
-        element.text = self.as_json_string()
-        return element

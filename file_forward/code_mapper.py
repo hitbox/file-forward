@@ -1,31 +1,27 @@
 import csv
 
+from file_forward.util import invert_dict
+from file_forward.util import is_one
+
 class CodeMapper:
     """
     Convert IATA to ICAO and vice verse.
     """
 
     def __init__(self, *, iata_to_icao=None, icao_to_iata=None):
-        if (
-            (iata_to_icao is None and icao_to_iata is None)
-            or
-            (iata_to_icao is not None and icao_to_iata is not None)
-        ):
+        if not is_one(iata_to_icao, icao_to_iata):
             raise ValueError(
                 'Must provide exactly one of "iata_to_icao" or "icao_to_iata".')
 
-        if iata_to_icao:
-            icao_to_iata = {val: key for key, val in iata_to_icao.items()}
-        else:
-            iata_to_icao = {val: key for key, val in icao_to_iata.items()}
-
-        self.iata_to_icao = iata_to_icao
-        self.icao_to_iata = icao_to_iata
+        # Save the one given and invert the other strictly, raising for
+        # duplicate keys.
+        self.iata_to_icao = iata_to_icao or invert_dict(icao_to_iata, strict=True)
+        self.icao_to_iata = icao_to_iata or invert_dict(iata_to_icao, strict=True)
 
     @classmethod
     def from_csv(cls, filename, iata_fieldname, icao_fieldname):
         """
-        Load conversions from CSV file.
+        Load conversions from CSV file with a header.
         """
         with open(filename, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -34,7 +30,13 @@ class CodeMapper:
         return cls(iata_to_icao=iata_to_icao)
 
     def iata(self, icao):
+        """
+        Get IATA code from ICAO.
+        """
         return self.icao_to_iata[icao]
 
     def icao(self, iata):
+        """
+        Get ICAO code from IATA.
+        """
         return self.iata_to_icao[iata]

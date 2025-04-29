@@ -6,8 +6,13 @@ from file_forward import config
 logger = logging.getLogger(__name__)
 
 def argument_parser():
+    """
+    Return argument parser.
+    """
     parser = argparse.ArgumentParser(
-        description = '',
+        description =
+            'Process files from sources and, primarily,'
+            ' send to a IBM MQ queue.',
     )
     parser.add_argument(
         '--config',

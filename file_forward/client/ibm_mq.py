@@ -149,8 +149,18 @@ class MQClient:
         """
         Connect to queue from configuration. Return None.
         """
-        self._queue_manager = self.get_queue_manager()
-        self._queue = self.get_queue()
+        if self._queue_manager is None:
+            self._queue_manager = self.get_queue_manager()
+        if self._queue is None:
+            self._queue = self.get_queue()
+
+    def close(self):
+        if self._queue:
+            self._queue.close()
+            self._queue = None
+        if self._queue_manager:
+            self._queue_manager.disconnect()
+            self._queue_manager = None
 
     def __enter__(self):
         """
@@ -163,10 +173,7 @@ class MQClient:
         """
         Exit context manager, closing everything.
         """
-        if self._queue:
-            self._queue.close()
-        if self._queue_manager:
-            self._queue_manager.disconnect()
+        self.close()
 
     def put(self, message, msg_desc=None, put_opts=None):
         """

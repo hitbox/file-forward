@@ -5,6 +5,9 @@ class NullArchive(ArchiveBase):
     The never archived archive.
     """
 
+    def __init__(self):
+        self._exceptions = set()
+
     def contains(self, source_result):
         return False
 
@@ -12,4 +15,7 @@ class NullArchive(ArchiveBase):
         pass
 
     def save(self):
+        pass
+
+    def _exception(self, source_result, exc):
         pass

@@ -37,11 +37,19 @@ class PDFScrape(ScrapeBase):
         """
         Loop through the pdf pages and search lines for matches against regex.
         """
+        pdf_stream = io.BytesIO(pdf_bytes)
         # Silence pdfplumber
         with contextlib.redirect_stderr(open(os.devnull, 'w')):
-            pdf_stream = io.BytesIO(pdf_bytes)
             with pdfplumber.open(pdf_stream) as pdf:
                 data = self._data_from_pdf(pdf)
                 if not data and self.raise_for_empty:
                     raise ValueError('No data scraped for PDF.')
         return data
+
+
+opticlimb_pdf_scraper = PDFScrape(
+    # Find matching line to get destination_icao.
+    r'A/C : [A-Z0-9]{1,6}'
+    r' From : [A-Z]{4}'
+    r' To : (?P<destination_icao>[A-Z]{4})'
+)

@@ -1,61 +1,79 @@
-class LegIdentifierField:
+from collections import namedtuple
 
-    keys = [
-        'airline_code',
-        'flight_number',
-        'date_of_origin',
-        'departure_airport',
-        'destination_airport',
-        'operational_suffix',
-    ]
+from .base import LidoBase
 
-    formatters = {
+DEFAULT_OPERATIONAL_SUFFIX = 'L'
+
+class LegIdentifierField(
+    namedtuple(
+        'LegIdentifierField',
+        field_names = [
+            'airline_code',
+            'flight_number',
+            'date_of_origin',
+            'departure_airport',
+            'destination_airport',
+            'operational_suffix',
+        ],
+        defaults = [
+            DEFAULT_OPERATIONAL_SUFFIX,
+        ],
+    ),
+    LidoBase,
+):
+    """
+    Value for LidoMeta JSON to identify flight to upload file for. It is always
+    a string for output.
+    """
+
+    __formatters__ = {
         'date_of_origin': lambda date: date.strftime('%d%b%Y'),
     }
 
-    def __init__(
-        self,
-        airline_code,
-        flight_number,
-        date_of_origin,
-        departure_airport,
-        destination_airport,
-        operational_suffix = None,
-    ):
-        self.airline_code = airline_code
-        self.flight_number = flight_number
-        self.date_of_origin = date_of_origin
-        self.departure_airport = departure_airport
-        self.destination_airport = destination_airport
-        self.operational_suffix = operational_suffix
+    # Rename scraped data to match this class' keyword arguments.
+    _opticlimb_key_map = {
+        'airline_iata': 'airline_code',
+        'flight_date': 'date_of_origin',
+        'departure_iata': 'departure_airport',
+        'destination_iata': 'destination_airport',
+    }
+
+    @classmethod
+    def from_source_result(cls, source_result):
+        return cls.from_opticlimb(source_result.path_data)
 
     @classmethod
     def from_opticlimb(cls, data):
         """
-        LegIdentifierField from scraped OptiClimb data.
+        LegIdentifierField from scraped and typed OptiClimb data.
         """
-        # Expecting typed data.
-        return cls(
-            airline_code = data['airline_iata'],
-            flight_number = data['flight_number'],
-            date_of_origin = data['flight_date'],
-            departure_airport = data['departure_iata'],
-            destination_airport = data['destination_iata'],
-            operational_suffix = data.get('operational_suffix'),
-        )
+        # Rename for keywords.
+        renamed = {cls._opticlimb_key_map.get(key, key): val for key, val in data.items()}
+        # Filter for only expected keywords.
+        kwargs = {key: val for key, val in renamed.items() if key in cls._fields}
+        return cls(**kwargs)
 
     def _value(self, key):
+        """
+        Get and format the value for key.
+        """
         value = getattr(self, key)
-        if key in self.formatters:
-            value = self.formatters[key](value)
+        if key in self.__formatters__:
+            # Format value from callable.
+            value = self.__formatters__[key](value)
         return value
 
-    def as_string(self, sep='.'):
+    def _as_string(self, sep='.'):
         """
+        Format leg identifier as the character separated string, that the
+        LidoMeta property/element expects.
         """
-        # Filter keys for not None values.
-        keys = (key for key in self.keys if getattr(self, key, None) is not None)
+        # Filter keys for None values.
+        keys = (key for key in self._fields if getattr(self, key) is not None)
         # Resolve keys' values.
-        values = (self._value(key) for key in keys)
+        values = map(self._value, keys)
         # Convert to string and join on sep.
         return sep.join(map(str, values))
+
+    def __str__(self):
+        return self._as_string()

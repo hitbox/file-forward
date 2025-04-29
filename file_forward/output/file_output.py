@@ -1,8 +1,11 @@
+import logging
 import sys
 
 from file_forward.util import writer
 
 from .base import OutputBase
+
+logger = logging.getLogger(__name__)
 
 class FileOutput(OutputBase):
     # XXX: WIP

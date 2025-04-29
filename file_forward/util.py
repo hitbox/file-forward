@@ -1,17 +1,11 @@
 import binascii
 import io
-import operator
 import sys
 import zipfile
 
-from functools import reduce
 from pathlib import Path
 
-def bitwise_or(*args):
-    """
-    Return the bitwise OR of the arguments.
-    """
-    return reduce(operator.or_, args)
+import pymqi
 
 def decode_md(md):
     """
@@ -31,7 +25,75 @@ def decode_md(md):
         result[attr] = value
     return result
 
+def invert_dict(d, strict=False):
+    """
+    Invert keys and values for dict d. If strict, raise for duplicate
+    value-keys.
+    """
+    inverted = {}
+    for key, val in d.items():
+        if strict and val in inverted:
+            raise ValueError(f'Duplicate key for value {val}')
+        inverted[val] = key
+    return inverted
+
+def is_one(*args, null=None):
+    """
+    Exactly one arg in args is not in the null set.
+    """
+    if not isinstance(null, (list, set, tuple)):
+        null = [null]
+    else:
+        null = list(set(null))
+    return sum(arg not in null for arg in args) == 1
+
+def jsonable(obj):
+    """
+    Return obj ready for JSON.
+    """
+    if isinstance(obj, (str, int, float, bool)) or obj is None:
+        return obj
+    elif isinstance(obj, (list, set, tuple)):
+        return [jsonable(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {jsonable(key): jsonable(val) for key, val in obj.items()}
+    elif hasattr(obj, '__dict__'):
+        return {
+            key: jsonable(val)
+            for key, val in obj.__dict__.items()
+            if not key.startswith('_') and not callable(val)
+        }
+    else:
+        return str(obj)
+
+def message_with_properties(queue_manager, properties):
+    """
+    Create MQ message with properties from dict.
+    """
+    # MessageHandle holds the message properties
+    message_handle = pymqi.MessageHandle(queue_manager)
+
+    # Set message properties from LCBMessage fields.
+    for key, val in properties.items():
+        if val is not None:
+            key = key.encode()
+            message_handle.properties.set(key, val)
+
+    put_message_options = pymqi.PMO(
+        Version = pymqi.CMQC.MQPMO_VERSION_3, # PMO v3 is required
+    )
+    put_message_options.OriginalMsgHandle = message_handle.msg_handle
+
+    message_descriptor = pymqi.MD(
+        Version = pymqi.CMQC.MQMD_CURRENT_VERSION,
+    )
+
+    return (message_descriptor, put_message_options)
+
 def normalize_path(path, posix=False):
+    """
+    Normalize path to POSIX style or absolute OS-native style.
+    """
     if posix:
         return str(Path(path).as_posix())
     else:
@@ -47,6 +109,9 @@ def strict_update(d1, d2):
     d1.update(d2)
 
 def writer(target):
+    """
+    Resolve target name to a writable stream.
+    """
     if target == 'stdout':
         return sys.stdout
     elif target == 'stderr' or target is None:

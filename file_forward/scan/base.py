@@ -1,9 +1,9 @@
 from abc import ABC
 from abc import abstractmethod
 
-class SourceBase(ABC):
+class ScanBase(ABC):
     """
-    Source ABC class.
+    Scan ABC class.
     """
 
     def __iter__(self):

@@ -7,30 +7,39 @@ class FileArchive(ArchiveBase):
     Save paths to a line separated file.
     """
 
-    def __init__(self, filename):
+    def __init__(self, success_fn, exception_fn):
         """
-        :param filename: Path to save filenames to.
+        :param success_fn: Path to save filenames to.
         """
-        self.filename = filename
-        self._archive = self._load_archive()
+        self.success_fn = success_fn
+        self.exception_fn = exception_fn
+        self._successes = self._load(self.success_fn)
+        self._exceptions = self._load(self.exception_fn)
 
-    def _load_archive(self):
-        if not os.path.exists(self.filename):
-            archive = set()
-        else:
-            with open(self.filename, 'r') as archive_file:
-                archive = set(line.strip() for line in archive_file)
+    def _load(self, filename):
+        archive = set()
+        if os.path.exists(filename):
+            with open(filename, 'r') as file:
+                for line in file:
+                    archive.add(line.strip())
         return archive
 
+    def _save(self, filename, archive):
+        with open(filename, 'w') as file:
+            file.write('\n'.join(archive))
+
     def contains(self, source_result):
-        return os.path.normpath(source_result.path) in self._archive
+        return os.path.normpath(source_result.path) in self._successes
 
     def add(self, source_result):
-        self._archive.add(os.path.normpath(source_result.path))
+        self._successes.add(os.path.normpath(source_result.path))
 
     def save(self):
         """
         Save in-memory archive to storage.
         """
-        with open(self.filename, 'w') as archive_file:
-            archive_file.write('\n'.join(self._archive))
+        self._save(self.success_fn, self._successes)
+        self._save(self.exception_fn, self._exceptions)
+
+    def _exception(self, source_result, exc):
+        self._exceptions.add(source_result.filename)

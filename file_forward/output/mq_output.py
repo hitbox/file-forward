@@ -1,9 +1,12 @@
+import logging
+
 from pprint import pprint
 
 from file_forward.util import decode_md
 
-from . import logger
 from .base import OutputBase
+
+logger = logging.getLogger(__name__)
 
 class MQOutput(OutputBase):
     """
@@ -24,7 +27,7 @@ class MQOutput(OutputBase):
             message_descriptor = message_queue.put(source_result.file_data)
             message_queue.commit()
 
-            # Decode and log.
+            # Decode message after server does things to it, and log.
             md_data = decode_md(message_descriptor)
             logger.info(
                 'message committed.'

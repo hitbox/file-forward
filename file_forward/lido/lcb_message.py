@@ -1,64 +1,62 @@
 import json
-import xml.etree.ElementTree as ET
+
+from collections import namedtuple
 
 from file_forward.util import strict_update
 
-from .document import Document
+from .base import LidoBase
 from .lcb_header import LCBHeader
 from .lcb_properties import LCBProperties
-from .leg_identifier_field import LegIdentifierField
-from .lido_meta_property import LidoMetaProperty
 
-class LCBMessage:
+class LCBMessage(
+    namedtuple('LCBMessage', field_names = ['header', 'properties']),
+    LidoBase,
+):
+    """
+    :param header: LCBHeader object.
+    :param properties: LCBProperties object.
+    """
 
-    def __init__(self, header, properties):
-        self.header = header
-        self.properties = properties
+    field_types = {
+        'header': LCBHeader,
+        'properties': LCBProperties,
+    }
 
-    @classmethod
-    def from_source_result(cls, source_result):
-        """
-        LCB message for Lido with metadata for PDF message. The zipped PDF goes
-        in the message body.
-        """
-        return cls(
-            LCBHeader(),
-            LCBProperties.from_source_result(source_result),
-        )
+    # fields to nest into a key, when outputting nested style.
+    nest_fields = {
+        'header': 'JMSHeader',
+        'properties': 'JMSProperties',
+    }
 
-    def as_dict(self):
-        """
-        LCBMessage as data dict.
-        """
-        return {
-            'header': self.header.as_dict(),
-            'properties': self.properties.as_dict(),
+    def get_header_fields(self):
+        header_fields = {
+            'JMSType': self.header.jms_type,
+            'JMSExpiration': self.header.jms_expiration,
         }
+        return header_fields
 
-    def as_dict_flat(self):
-        data = self.header.as_dict()
-        strict_update(data, self.properties.as_dict())
+    def lido_meta_value(self):
+        lido_meta = self.properties.lido_meta
+        data = {
+            'legIdentifier': str(lido_meta.leg_identifier),
+            'documents': [
+                {
+                    'docKey': document.doc_key,
+                    'fileName': document.file_name,
+                    'mediaType': document.media_type,
+                }
+                for document in lido_meta.documents
+            ],
+        }
         return data
 
-    def as_json_string(self):
-        """
-        LCBMessage as JSON string.
-        """
-        return json.dumps(self.as_dict())
+    def get_property_fields(self):
+        property_fields = {
+            'LidoMeta': json.dumps(self.lido_meta_value()),
+        }
+        return property_fields
 
-    def as_xml(self):
-        root  = ET.Element('root')
-        root.append(self.header.as_xml())
-        root.append(self.properties.as_xml())
-        return root
-
-    def as_xml_flat(self):
-        root  = ET.Element('root')
-
-        for element in self.header.iter_elements():
-            root.append(element)
-
-        for element in self.properties.iter_elements():
-            root.append(element)
-
-        return root
+    def get_fields(self):
+        data = self.get_header_fields()
+        strict_update(data, self.get_property_fields())
+        return data

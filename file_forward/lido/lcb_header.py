@@ -1,13 +1,20 @@
-import xml.etree.ElementTree as ET
-
 from collections import namedtuple
+
+from .base import LidoBase
 
 class LCBHeader(
     namedtuple(
         'LCBHeader',
-        field_names = ['jms_expiration', 'jms_type'],
-        defaults = [None, 'Byte'],
+        field_names = [
+            'jms_expiration',
+            'jms_type',
+        ],
+        defaults = [
+            None, # jms_expiration
+            'Byte', # jms_type
+        ],
     ),
+    LidoBase,
 ):
     """
     :param jms_type:
@@ -18,30 +25,3 @@ class LCBHeader(
         expiration is set to 24h.
         Sample: 1546344000000
     """
-
-    def as_dict(self):
-        data = {
-            'JMSType': self.jms_type,
-        }
-        if self.jms_expiration:
-            data['JMSExpiration'] = self.jms_expiration
-        return data
-
-    def as_xml(self):
-        """
-        Return LCBHeader as XML element.
-        """
-        header = ET.Element('Header')
-        ET.SubElement(header, 'JMSExpiration').text = self.jms_expiration
-        ET.SubElement(header, 'JMSType').text = self.jms_type
-        return header
-
-    def iter_attrs(self):
-        yield self.jms_expiration
-        yield self.jms_type
-
-    def iter_elements(self):
-        for name, text in zip(self.__tags__, self.iter_attrs()):
-            element = ET.Element(name)
-            element.text = text
-            yield element
