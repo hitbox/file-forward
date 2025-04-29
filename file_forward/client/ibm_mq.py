@@ -11,8 +11,8 @@ class MQClient:
         channel,
         queue_manager_name,
         queue_name,
-        ssl_key_repository,
-        certificate_label,
+        ssl_key_repository = None,
+        certificate_label = None,
         user_id = None,
         cipher_spec = None,
         queue_options = None,
@@ -63,11 +63,16 @@ class MQClient:
         """
         SSL Configuration object.
         """
-        ssl_config_options = pymqi.SCO(
-            KeyRepository = self.ssl_key_repository.encode(),
-            CertificateLabel = self.certificate_label.encode(),
-        )
-        return ssl_config_options
+        attrs = {}
+
+        if self.ssl_key_repository:
+            attrs['KeyRepository'] = self.ssl_key_repository.encode()
+
+        if self.certificate_label:
+            attrs['CertificateLabel'] = self.certificate_label.encode()
+
+        if attrs:
+            return pymqi.SCO(**attrs)
 
     def inquire(self, queue_manager):
         keys = [
@@ -123,11 +128,15 @@ class MQClient:
         # Defer connect with name = None.
         queue_manager = pymqi.QueueManager(name=None)
 
-        queue_manager.connect_with_options(
-            self.queue_manager_name,
-            cd = channel_definition,
-            sco = ssl_config_options,
-        )
+        kwargs = {}
+
+        if channel_definition:
+            kwargs['cd'] = channel_definition
+
+        if ssl_config_options:
+            kwargs['sco'] = ssl_config_options
+
+        queue_manager.connect_with_options(self.queue_manager_name, **kwargs)
 
         if self.confirm_query_manager:
             self.raise_for_query_manager(queue_manager)
