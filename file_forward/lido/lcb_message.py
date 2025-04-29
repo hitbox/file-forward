@@ -22,12 +22,6 @@ class LCBMessage(
         'properties': LCBProperties,
     }
 
-    # fields to nest into a key, when outputting nested style.
-    nest_fields = {
-        'header': 'JMSHeader',
-        'properties': 'JMSProperties',
-    }
-
     def get_header_fields(self):
         header_fields = {
             'JMSType': self.header.jms_type,
