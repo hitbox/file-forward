@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from file_forward import config
+from file_forward.util import load_pyfile
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ def argument_parser():
     )
     parser.add_argument(
         '--config',
+        help = 'Python config file. Must provide PROCESSES.',
     )
     return parser
 
@@ -25,7 +26,7 @@ def main(argv=None):
     """
     parser = argument_parser()
     args = parser.parse_args(argv)
-    appconfig = config.load_pyfile(args.config)
+    appconfig = load_pyfile(args.config)
     processes = getattr(appconfig, 'PROCESSES')
 
     try:

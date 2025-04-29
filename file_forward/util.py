@@ -1,5 +1,7 @@
 import binascii
+import importlib.util
 import io
+import os
 import sys
 import zipfile
 
@@ -65,6 +67,16 @@ def jsonable(obj):
         }
     else:
         return str(obj)
+
+def load_pyfile(path):
+    """
+    Load Python file.
+    """
+    module_name, _ = os.path.splitext(os.path.basename(path))
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 def message_with_properties(queue_manager, properties):
     """
