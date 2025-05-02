@@ -8,3 +8,9 @@ class OutputBase(ABC):
         """
         Write output from source result object.
         """
+
+    @abstractmethod
+    def finalize(self):
+        """
+        Any final cleanup or processing.
+        """

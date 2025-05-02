@@ -1,17 +1,20 @@
-import json
 import logging
-
-import pymqi
 
 from file_forward.lido import LCBMessage
 from file_forward.util import decode_md
 from file_forward.util import message_with_properties
 
 from .base import OutputBase
+from .mixin import AccumulateMixin
+from .mixin import LegIdentifierMixin
 
 logger = logging.getLogger(__name__)
 
-class LCBOutput(OutputBase):
+class LCBOutput(
+    AccumulateMixin,
+    LegIdentifierMixin,
+    OutputBase,
+):
     """
     Write Lido LCB message to client.
     """
@@ -28,13 +31,6 @@ class LCBOutput(OutputBase):
         self.client = client
         self.message_builder = message_builder
         self.context = context
-
-    def put_message(self, source_result):
-        message = self.message_builder(source_result)
-        with self.client as message_queue:
-            message_descriptor = message_queue.put(message)
-            message_queue.commit()
-            return message_descriptor
 
     def put_message_jms(self, source_result):
         """
@@ -57,17 +53,14 @@ class LCBOutput(OutputBase):
 
             return message_descriptor
 
-    def log(self, message_descriptor):
-        # Log resulting message descriptor.
-        logger.info(
-            'message committed:host=%r:queue_name=%r',
-            self.client.host,
-            self.client.queue_name,
-        )
-
-    def __call__(self, source_result):
+    def finalize(self):
         """
-        Put message on queue.
+        Write the newest OFP by version to queue.
         """
-        message_descriptor = self.put_message_jms(source_result)
-        self.log(message_descriptor)
+        for source_result in self.newest_by_ofp_version():
+            message_descriptor = self.put_message_jms(source_result)
+            logger.info(
+                'message committed:host=%r:queue_name=%r',
+                self.client.host,
+                self.client.queue_name,
+            )
