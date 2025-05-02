@@ -32,6 +32,9 @@ def main(argv=None):
     try:
         for process_name, process in processes.items():
             process(process_name)
+
+        for process_name, process in processes.items():
+            process.output.finalize()
     except KeyboardInterrupt:
         pass
     else:
