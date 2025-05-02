@@ -1,8 +1,10 @@
 import ftplib
 import io
 import posixpath
+import time
 
 from ftplib import error_perm
+from types import SimpleNamespace
 
 from file_forward.util import normalize_path
 from file_forward.util import posix_parts
@@ -86,7 +88,13 @@ class FTPClient(ClientBase):
                 self._ftp.cwd(path)
 
     def stat(self, path):
-        raise NotImplementedError
+        path = normalize_path(path, posix=True)
+        mtime_string = self._ftp.sendcmd(f'MDTM {path}')[4:].strip()
+        mtime_struct = time.strptime(mtime_string, '%Y%m%d%H%M%S')
+        mtime = time.mktime(mtime_struct)
+
+        stat = SimpleNamespace(st_mtime=mtime, st_atime=mtime)
+        return stat
 
     @property
     def name(self):
