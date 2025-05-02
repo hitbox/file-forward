@@ -2,6 +2,13 @@ import os
 
 from itertools import count
 
+app_dir = os.path.dirname(__file__)
+project_dir = os.path.dirname(app_dir)
+instance_dir = os.path.join(project_dir, 'instance')
+archive_dir = os.path.join(instance_dir, 'archive')
+etc_dir = os.path.join(instance_dir, 'etc')
+certs_dir = os.path.join(instance_dir, 'certs')
+
 def rename_unique(path, sep='.'):
     """
     Rename file with integers until not found.
@@ -18,3 +25,7 @@ def insert_before_ext(path, index, sep):
     """
     root, ext = os.path.splitext(path)
     return f'{root}{sep}{index}{ext}'
+
+def insert_before_ext(path, substring):
+    root, ext = os.path.splitext(path)
+    return f'{root}{substring}{ext}'
