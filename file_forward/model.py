@@ -112,6 +112,9 @@ class Rowifier:
         self.formatters = {} if formatters is None else formatters
 
     def __call__(self, rows):
+        """
+        Generate an item (values, classes) for Excel output to use.
+        """
         if self.include_header:
             values = tuple(self.header)
             classes = set(['header'])

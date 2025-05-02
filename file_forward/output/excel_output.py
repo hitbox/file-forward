@@ -45,6 +45,9 @@ class ExcelOutput(
         self._sources = None
 
     def add_autofilter(self, ws):
+        """
+        Add Excel auto filter to sheet. Add predefined filters if configured.
+        """
         ws.auto_filter.ref = ws.dimensions
         if self.filters:
             for column_index, filter_values in self.filters:
