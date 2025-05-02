@@ -1,8 +1,10 @@
+import logging
+
 from collections import namedtuple
 
 from .base import LidoBase
 
-DEFAULT_OPERATIONAL_SUFFIX = 'L'
+logger = logging.getLogger(__name__)
 
 class LegIdentifierField(
     namedtuple(
@@ -14,9 +16,6 @@ class LegIdentifierField(
             'departure_airport',
             'destination_airport',
             'operational_suffix',
-        ],
-        defaults = [
-            DEFAULT_OPERATIONAL_SUFFIX,
         ],
     ),
     LidoBase,
@@ -40,14 +39,17 @@ class LegIdentifierField(
 
     @classmethod
     def from_source_result(cls, source_result, context):
-        return cls.from_opticlimb(source_result.path_data, context)
-
-    @classmethod
-    def from_opticlimb(cls, data, context):
         """
         LegIdentifierField from scraped and typed OptiClimb data.
         """
-        # Rename for keywords.
+        if context and cls.__name__ in context:
+            func = context[cls.__name__]
+            data = func(logger, source_result)
+            logger.debug('%s', func)
+        else:
+            data = source_result.path_data
+
+        # Rename keys for keywords.
         renamed = {cls._opticlimb_key_map.get(key, key): val for key, val in data.items()}
         # Filter for only expected keywords.
         kwargs = {key: val for key, val in renamed.items() if key in cls._fields}

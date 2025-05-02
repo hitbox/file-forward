@@ -41,3 +41,10 @@ class LCBProperties(
     field_types = {
         'lido_meta': LidoMetaProperty,
     }
+
+    @classmethod
+    def from_source_result(cls, source_result, context=None):
+        return cls(
+            lido_meta = LidoMetaProperty.from_source_result(source_result, context),
+        )
+

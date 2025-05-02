@@ -24,6 +24,13 @@ class LCBMessage(
         'properties': LCBProperties,
     }
 
+    @classmethod
+    def from_source_result(cls, source_result, context=None):
+        return cls(
+            header = LCBHeader.from_source_result(source_result, context),
+            properties = LCBProperties.from_source_result(source_result, context),
+        )
+
     def get_header_fields(self):
         """
         Return dict of JMS Header properties.

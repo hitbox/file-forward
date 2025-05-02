@@ -33,8 +33,6 @@ class LidoMetaProperty(
                 source_result,
                 context,
             ),
-            documents = [
-                Document.from_source_result(source_result, context),
-            ],
+            documents = [Document.from_source_result(source_result, context=context)],
         )
         return instance
