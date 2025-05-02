@@ -17,5 +17,5 @@ class NullArchive(ArchiveBase):
     def save(self):
         pass
 
-    def _exception(self, source_result, exc):
+    def handle_exception(self, source_result, exc):
         pass
