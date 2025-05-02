@@ -11,6 +11,22 @@ class ClientBase(ABC):
     def listdir(self, path=None):
         pass
 
+    @abstractmethod
+    def move(self, src, dst):
+        pass
+
+    @abstractmethod
+    def exists(self, path):
+        pass
+
+    @abstractmethod
+    def makedirs(self, path):
+        pass
+
+    @abstractmethod
+    def stat(self, path):
+        pass
+
     @property
     @abstractmethod
     def name(self):

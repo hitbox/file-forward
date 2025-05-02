@@ -1,5 +1,6 @@
 import getpass
 import os
+import shutil
 import socket
 
 from .base import ClientBase
@@ -22,6 +23,18 @@ class OSClient(ClientBase):
 
     def listdir(self, *args, **kwargs):
         return os.listdir(*args, **kwargs)
+
+    def exists(self, path):
+        return os.path.exists(path)
+
+    def move(self, src, dst):
+        return shutil.move(src, dst)
+
+    def makedirs(self, path):
+        os.makedirs(path)
+
+    def stat(self, path):
+        return os.stat(path)
 
     @property
     def name(self):
