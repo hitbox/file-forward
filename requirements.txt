@@ -1,4 +1,5 @@
 marshmallow
+openpyxl
 paramiko
 pdfplumber
 pymqi
