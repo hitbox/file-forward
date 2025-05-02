@@ -5,6 +5,7 @@ import os
 import sys
 import zipfile
 
+from itertools import groupby
 from pathlib import Path
 
 import pymqi
@@ -26,6 +27,25 @@ def decode_md(md):
                 value = binascii.hexlify(value).decode('ascii')
         result[attr] = value
     return result
+
+def get_pythonw_path():
+    python_dir = os.path.dirname(sys.executable)
+    pythonw = os.path.join(python_dir, 'pythonw.exe')
+    if os.path.exists(pythonw):
+        return pythonw
+
+def grouped(iterable, key=None):
+    """
+    Convenience to sort and group with one function.
+    """
+    return groupby(sorted(iterable, key=key), key=key)
+
+def max_in_group(iterable, groupkey=None, newkey=None):
+    """
+    Generate newest items in iterable from groupings.
+    """
+    for key, groupiter in grouped(iterable, key=groupkey):
+        yield max(groupiter, key=newkey)
 
 def invert_dict(d, strict=False):
     """
@@ -110,6 +130,9 @@ def normalize_path(path, posix=False):
         return str(Path(path).as_posix())
     else:
         return str(Path(path).resolve())
+
+def posix_parts(path):
+    return path.strip('/').split('/')
 
 def strict_update(d1, d2):
     """
