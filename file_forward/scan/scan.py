@@ -56,5 +56,6 @@ class Scan(ScanBase):
                         # Update types.
                         path_data = self.schema(path_data)
 
-                    source_result = SourceResult(self.client, path, path_data, file_data, self.posix)
+                    stat_data = self.client.stat(path)
+                    source_result = SourceResult(self.client, path, path_data, file_data, stat_data, self.posix)
                     yield source_result
