@@ -1,6 +1,7 @@
 import re
 
-# ASM Text files
+# ASM Text file names.
+
 asm_filename_regex = re.compile(
     # ASM_ABX_819_2_31MAY25_0115_0230_SFO_LAX.txt
     r'ASM_(?P<airline_icao>[A-Z]{3})'

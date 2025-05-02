@@ -1,6 +1,7 @@
 import re
 
-# OptiClimb PDF files.
+# OptiClimb PDF file names.
+
 opticlimb_filename_regex = re.compile(
     # Matching and capturing like these:
     # 'OptiFlight-ABX3107-16APR25-KSCK-OFP4.pdf'
