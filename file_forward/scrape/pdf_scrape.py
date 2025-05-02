@@ -49,7 +49,7 @@ class PDFScrape(ScrapeBase):
 
 opticlimb_pdf_scraper = PDFScrape(
     # Find matching line to get destination_icao.
-    r'A/C : [A-Z0-9]{1,6}'
+    r'A/C : (?P<aircraft_registration>[A-Z0-9]{1,6})'
     r' From : [A-Z]{4}'
-    r' To : (?P<destination_icao>[A-Z]{4})'
+    r' To : (?P<destination_icao>[A-Z]{4})',
 )
