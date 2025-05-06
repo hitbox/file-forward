@@ -34,6 +34,7 @@ def main(argv=None):
             process(process_name)
 
         for process_name, process in processes.items():
+            logger.debug('finalize %r', process_name)
             process.output.finalize()
     except KeyboardInterrupt:
         pass
