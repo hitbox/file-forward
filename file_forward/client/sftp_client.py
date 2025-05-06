@@ -5,8 +5,9 @@ import paramiko
 from file_forward.util import posix_parts
 
 from .base import ClientBase
+from .mixin import PosixMixin
 
-class SFTPClient(ClientBase):
+class SFTPClient(PosixMixin, ClientBase):
 
     def __init__(self, host, port, username, password):
         self.host = host
@@ -50,6 +51,7 @@ class SFTPClient(ClientBase):
         return self._sftp.listdir(*args, **kwargs)
 
     def exists(self, path):
+        path = self.normalize_path(path)
         try:
             self._sftp.stat(path)
             return True
@@ -60,6 +62,7 @@ class SFTPClient(ClientBase):
         self._sftp.rename(src, dst)
 
     def makedirs(self, path, mode=511):
+        path = self.normalize_path(path)
         parts = posix_parts(path)
         path = ''
         for part in parts:

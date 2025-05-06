@@ -4,6 +4,10 @@ from abc import abstractmethod
 class ClientBase(ABC):
 
     @abstractmethod
+    def normalize_path(self, path):
+        pass
+
+    @abstractmethod
     def read(self, *args):
         pass
 

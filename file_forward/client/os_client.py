@@ -4,8 +4,9 @@ import shutil
 import socket
 
 from .base import ClientBase
+from .mixin import OSMixin
 
-class OSClient(ClientBase):
+class OSClient(OSMixin, ClientBase):
 
     def __init__(self):
         self.username = getpass.getuser()

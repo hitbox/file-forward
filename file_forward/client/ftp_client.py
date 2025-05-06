@@ -6,12 +6,12 @@ import time
 from ftplib import error_perm
 from types import SimpleNamespace
 
-from file_forward.util import normalize_path
 from file_forward.util import posix_parts
 
 from .base import ClientBase
+from .mixin import PosixMixin
 
-class FTPClient(ClientBase):
+class FTPClient(PosixMixin, ClientBase):
 
     def __init__(self, host, port, username, password):
         self.host = host
@@ -36,7 +36,7 @@ class FTPClient(ClientBase):
         self._close()
 
     def read(self, path, **kwargs):
-        path = normalize_path(path, posix=True)
+        path = self.normalize_path(path)
         stream = io.BytesIO()
         self._ftp.retrbinary(f'RETR {path}', stream.write)
         return stream.getvalue()
@@ -44,7 +44,7 @@ class FTPClient(ClientBase):
     def listdir(self, path=None):
         saved = None
         if path:
-            path = normalize_path(path, posix=True)
+            path = self.normalize_path(path)
             saved = self._ftp.pwd()
             self._ftp.cwd(path)
         result = self._ftp.nlst()
@@ -88,7 +88,7 @@ class FTPClient(ClientBase):
                 self._ftp.cwd(path)
 
     def stat(self, path):
-        path = normalize_path(path, posix=True)
+        path = self.normalize_path(path)
         mtime_string = self._ftp.sendcmd(f'MDTM {path}')[4:].strip()
         mtime_struct = time.strptime(mtime_string, '%Y%m%d%H%M%S')
         mtime = time.mktime(mtime_struct)
