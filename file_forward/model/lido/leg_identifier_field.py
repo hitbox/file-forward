@@ -75,7 +75,9 @@ class LegIdentifierField(
         # Resolve keys' values.
         values = map(self._value, keys)
         # Convert to string and join on sep.
-        return sep.join(map(str, values))
+        string = sep.join(map(str, values))
+        logger.debug('%r', string)
+        return string
 
     def __str__(self):
         return self._as_string()
