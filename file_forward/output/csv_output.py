@@ -4,9 +4,9 @@ from file_forward.util import strict_update
 
 from .base import OutputBase
 
-class ReportOutput(OutputBase):
+class CSVOutput(OutputBase):
     """
-    Accumulate source objects and create a report.
+    Accumulate source objects and create a CSV report.
     """
 
     def __init__(self, output, header, formatters=None, message_builder=None):
