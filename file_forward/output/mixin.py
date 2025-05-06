@@ -1,7 +1,10 @@
 from operator import attrgetter
+from operator import itemgetter
 
 from file_forward.util import grouped
+from file_forward.util import leg_identifier_key
 from file_forward.util import max_in_group
+from file_forward.util import ofp_version_key
 
 class AccumulateMixin:
     """
@@ -13,6 +16,7 @@ class AccumulateMixin:
         Collect SourceResult objects into internal list.
         """
         if not hasattr(self, '_sources') or self._sources is None:
+            # Initialize _sources list.
             self._sources = []
 
         self._sources.append(source_result)
@@ -25,6 +29,14 @@ class LegIdentifierMixin:
 
     _leg_identifier_key = attrgetter('leg_identifier')
     _ofp_version_key = attrgetter('ofp_version')
+
+    @staticmethod
+    def _leg_identifier_key(file):
+        return leg_identifier_key(file.path_data)
+
+    @staticmethod
+    def _ofp_version_key(file):
+        return ofp_version_key(file.path_data)
 
     def newest_by_ofp_version(self):
         """

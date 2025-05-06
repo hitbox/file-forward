@@ -1,5 +1,13 @@
 from collections import namedtuple
 
+from sqlalchemy import Column
+from sqlalchemy import Date
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+
+from .base import Base
+
 class OFPVersion(
     namedtuple(
         'OFPVersion',
@@ -18,3 +26,17 @@ class OFPVersion(
     """
     Named tuple of the three parts of an OFP version--the major, minor, and patch integers.
     """
+
+
+class __OFPVersion(Base):
+
+    __tablename__ = 'ofp_version'
+
+    id = Column(Integer, primary_key=True)
+
+    major = Column(Integer, nullable=False, default=0)
+    minor = Column(Integer, nullable=False, default=0)
+    patch = Column(Integer, nullable=False, default=0)
+
+    def as_string(self):
+        return '.'.join([self.major, self.minor, self.patch])

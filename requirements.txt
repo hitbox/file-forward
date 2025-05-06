@@ -1,5 +1,8 @@
 marshmallow
 openpyxl
 paramiko
+passlib
 pdfplumber
 pymqi
+sqlalchemy
+sqlalchemy-utils

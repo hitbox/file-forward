@@ -3,6 +3,7 @@ import re
 
 from .base import ScanBase
 
+from file_forward.model import File
 from file_forward.model import SourceResult
 from file_forward.util import strict_update
 
@@ -18,14 +19,12 @@ class Scan(ScanBase):
         root_dir,
         scrape = None,
         schema = None,
-        posix = True,
     ):
         self.client = client
         self.pattern = pattern
         self.root_dir = root_dir
         self.scrape = scrape
         self.schema = schema
-        self.posix = posix
 
     def generate_results(self):
         """
@@ -37,11 +36,12 @@ class Scan(ScanBase):
                 match = filename_re.match(filename)
                 if match:
                     path = os.path.join(self.root_dir, filename)
+                    path = self.client.normalize_path(path)
 
                     # Scrape the path from regex capture groups, if any.
                     path_data = match.groupdict()
 
-                    # Read data into memory.
+                    # Read file data into memory.
                     file_data = client.read(path, mode='rb')
 
                     if self.scrape:
@@ -57,5 +57,5 @@ class Scan(ScanBase):
                         path_data = self.schema(path_data)
 
                     stat_data = self.client.stat(path)
-                    source_result = SourceResult(self.client, path, path_data, file_data, stat_data, self.posix)
+                    source_result = SourceResult(self.client, path, path_data, file_data, stat_data)
                     yield source_result

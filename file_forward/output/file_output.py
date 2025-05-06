@@ -1,31 +1,33 @@
 import os
 
-from file_forward.util import strict_update
-from file_forward.util import writer
-
 from .base import OutputBase
 
 class FileOutput(OutputBase):
+    """
+    Write in-memory file data to a real file.
+    """
 
-    def __init__(self, filename, stream=None):
+    def __init__(self, filename):
         self.filename = filename
-        self.stream = stream
 
-    def __call__(self, source_result):
-        context = source_result.flat_dict()
-        strict_update(context, {'path': source_result.path})
+    def __call__(self, file):
+        # Allow format string from source file data.
+        context = file.flat_dict()
         filename = self.filename.format(**context)
 
+        # Ensure directory structure is available.
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
+        # Write saved file data to file system.
         with open(filename, 'wb') as output_file:
-            output_file.write(source_result.file_data)
+            output_file.write(file.file_data)
 
-        stat_data = source_result.stat_data
+        # Update copy to mirror stat()
+        stat_data = file.stat_data
         times = (stat_data.st_atime, stat_data.st_mtime)
         os.utime(filename, times)
 
     def finalize(self):
         """
-        Nothing to do.
+        Nothing to do, this is not an accumulator.
         """

@@ -11,6 +11,6 @@ opticlimb_filename_regex = re.compile(
     r'(?P<flight_number>[A-Z0-9]{2}\d{1,4}[A-Z]?)'
     r'-(?P<flight_date_string>\d{2}[a-zA-Z]{3}\d{2})'
     r'-(?P<departure_icao>[A-Z]{4})'
-    r'-OFP(?P<ofp_string>[\d_]+)'
+    r'-OFP(?P<ofp_version>[\d_]+)'
     r'.pdf'
 )

@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from file_forward.lido import LCBMessage
+from file_forward.model.lido import LCBMessage
 
 class MessageBase(ABC):
 

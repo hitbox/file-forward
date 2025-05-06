@@ -2,7 +2,9 @@ import marshmallow as mm
 
 from marshmallow import Schema
 from marshmallow import post_load
+from marshmallow.fields import Integer
 from marshmallow.fields import String
+from marshmallow.fields import Time
 
 from file_forward.model import OFPVersion
 from file_forward.util import strict_update
@@ -11,21 +13,20 @@ from .field import TupleField
 from .field import flight_date_field
 from .field import ofp_version_field
 from .field import operational_suffix_field
+from .mixin import DataMixin
 
-class OptiClimbFilenameSchema(Schema):
+class OptiClimbFilenameSchema(DataMixin, Schema):
     """
     OptiClimb filename schema.
     """
 
-    airline_icao = String()
-    flight_number = String()
-    flight_date = flight_date_field('flight_date_string')
     departure_icao = String()
     destination_icao = String()
-    operational_suffix = operational_suffix_field()
     aircraft_registration = String()
 
-    ofp_version = ofp_version_field(data_key='ofp_string')
+    take_off_weight_pounds = Integer()
+    block_off_time = Time()
+    block_in_time = Time()
 
     def __init__(self, airline_mapper, airport_mapper, **kwargs):
         super().__init__(**kwargs)

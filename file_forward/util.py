@@ -6,9 +6,18 @@ import sys
 import zipfile
 
 from itertools import groupby
+from operator import itemgetter
 from pathlib import Path
 
 import pymqi
+
+from sqlalchemy import or_
+
+from .constant import LEG_IDENTIFIER_KEYS
+from .constant import OFP_VERSION_KEYS
+
+leg_identifier_key = itemgetter(*LEG_IDENTIFIER_KEYS)
+ofp_version_key = itemgetter(*OFP_VERSION_KEYS)
 
 def decode_md(md):
     """
@@ -164,3 +173,44 @@ def zip_bytes(input_bytes, filename):
     with zipfile.ZipFile(zip_buffer, 'w') as zf:
         zf.writestr(filename, input_bytes)
     return zip_buffer.getvalue()
+
+def raise_for_empty_string(key, value):
+    if not value or not value.strip():
+        raise ValueError(f'{key} must be a non-empty string.')
+    return value
+
+def is_overlapping(
+    session,
+    model_class,
+    left_id_name,
+    right_id_name,
+    valid_from_name,
+    valid_to_name,
+    left_id,
+    right_id,
+    new_from,
+    new_to = None,
+):
+    left_id_col = getattr(model_class, left_id_name)
+    right_id_col = getattr(model_class, right_id_name)
+    valid_from_col = getattr(model_class, valid_from_name)
+    valid_to_col = getattr(model_class, valid_to_name)
+
+    overlap = session.query(model_class).where(
+        # Rows matching the ids
+        left_id_col == left_id,
+        right_id_col == right_id,
+        # And, either valid_to is None, or new_to is None, or new_to is less than or equal to valid_from
+        or_(
+            valid_to_col == None,
+            new_to is None,
+            valid_from_col <= new_to,
+        ),
+        # And, either new_to is None, or valid_to is None, or new_from is less than or equal to the valid_to
+        or_(
+            new_to is None,
+            valid_to_col == None,
+            new_from <= valid_to_col
+        ),
+    )
+    return session.query(overlap.exists()).scalar()
