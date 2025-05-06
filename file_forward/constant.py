@@ -1,4 +1,6 @@
-DEFAULT_OPERATIONAL_SUFFIX = 'L'
+# NOTE:
+# During testing, a space was the only value that worked.
+DEFAULT_OPERATIONAL_SUFFIX = ' '
 
 LEG_IDENTIFIER_KEYS = [
     'airline_iata',
@@ -9,3 +11,8 @@ LEG_IDENTIFIER_KEYS = [
     'operational_suffix',
 ]
 
+OFP_VERSION_KEYS = [
+    'ofp_version_major',
+    'ofp_version_minor',
+    'ofp_version_patch',
+]
