@@ -1,3 +1,4 @@
+click
 marshmallow
 openpyxl
 paramiko
@@ -6,3 +7,4 @@ pdfplumber
 pymqi
 sqlalchemy
 sqlalchemy-utils
+zxcvbn
