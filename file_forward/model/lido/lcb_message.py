@@ -1,4 +1,5 @@
 import json
+import logging
 
 from collections import namedtuple
 
@@ -7,6 +8,8 @@ from file_forward.util import strict_update
 from .base import LidoBase
 from .lcb_header import LCBHeader
 from .lcb_properties import LCBProperties
+
+logger = logging.getLogger(__name__)
 
 class LCBMessage(
     namedtuple('LCBMessage', field_names=['header', 'properties']),
@@ -69,8 +72,9 @@ class LCBMessage(
         Relative path to docs:
         lcb/7.2.0-SR2449/api.html#jms-properties
         """
+        lido_meta = json.dumps(self.lido_meta_value())
         property_fields = {
-            'LidoMeta': json.dumps(self.lido_meta_value()),
+            'LidoMeta': lido_meta,
         }
         return property_fields
 

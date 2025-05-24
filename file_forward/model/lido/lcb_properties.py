@@ -47,4 +47,3 @@ class LCBProperties(
         return cls(
             lido_meta = LidoMetaProperty.from_source_result(source_result, context),
         )
-

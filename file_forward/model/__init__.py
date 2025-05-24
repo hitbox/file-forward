@@ -3,9 +3,14 @@ from .airline import Airline
 from .airport import Airport
 from .base import Base
 from .credential import Credential
+from .document import DocumentModel
 from .file import File
 from .file import ProcessingState
-from .leg_identifier import LegIdentifier
+from .lcb_header import LCBHeaderModel
+from .lcb_message import LCBMessageModel
+from .lcb_properties import LCBPropertiesModel
+from .leg_identifier import LegIdentifierModel
+from .lido_meta_property import LidoMetaPropertyModel
 from .ofp_version import OFPVersion
 from .rowifier import Rowifier
 from .server import Server

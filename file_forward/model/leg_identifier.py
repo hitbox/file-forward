@@ -6,12 +6,16 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Time
+from sqlalchemy import select
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 
 from .base import Base
 
-class LegIdentifier(Base):
+class LegIdentifierModel(Base):
+    """
+    Uniquely identify a flight leg and some extra information.
+    """
 
     __tablename__ = 'leg_identifier'
 
@@ -48,8 +52,30 @@ class LegIdentifier(Base):
     #ofp_version_id = Column(ForeignKey('ofp_version.id'))
     #ofp_version = relationship('OFPVersion')
 
-    @validates('operational_suffix')
-    def validate_operational_suffix(self, key, value):
-        if value not in ' ' + string.uppercase_ascii:
-            raise ValueError(f'{key} must be a space or uppercase alphabet character.')
-        return value
+    @classmethod
+    def from_leg_identifier_field(cls, leg_identifier_field):
+        """
+        """
+        from .airline import Airline
+        from .airport import Airport
+        from file_forward import context
+
+        session = context.get_session_context()
+        extra_data = context.extra_data.get()
+
+        airline = Airline.one_by_iata(session, leg_identifier_field.airline_code)
+        departure = Airport.one_by_iata(session, leg_identifier_field.departure_airport)
+        destination = Airport.one_by_iata(session, leg_identifier_field.destination_airport)
+
+        instance = cls(
+            airline = airline,
+            flight_number = leg_identifier_field.flight_number,
+            flight_date = leg_identifier_field.date_of_origin,
+            departure = departure,
+            destination = destination,
+            operational_suffix = leg_identifier_field.operational_suffix,
+            take_off_weight = extra_data['take_off_weight_pounds'],
+            block_in_time = extra_data['block_in_time'],
+            block_off_time = extra_data['block_off_time'],
+        )
+        return instance

@@ -165,7 +165,10 @@ class MQClient:
 
     def close(self):
         if self._queue:
-            self._queue.close()
+            try:
+                self._queue.close()
+            except pymqi.PYIFError:
+                pass
             self._queue = None
         if self._queue_manager:
             self._queue_manager.disconnect()

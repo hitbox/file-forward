@@ -1,23 +1,21 @@
 import binascii
 import importlib.util
 import io
+import logging
 import os
 import sys
 import zipfile
 
 from itertools import groupby
-from operator import itemgetter
+from logging.handlers import RotatingFileHandler
+from logging.handlers import SMTPHandler
 from pathlib import Path
 
 import pymqi
 
 from sqlalchemy import or_
 
-from .constant import LEG_IDENTIFIER_KEYS
-from .constant import OFP_VERSION_KEYS
-
-leg_identifier_key = itemgetter(*LEG_IDENTIFIER_KEYS)
-ofp_version_key = itemgetter(*OFP_VERSION_KEYS)
+from file_forward.path import logging_dir
 
 def decode_md(md):
     """
@@ -214,3 +212,20 @@ def is_overlapping(
         ),
     )
     return session.query(overlap.exists()).scalar()
+
+def get_rotating_file_handler(filename, level, formatter, **kwargs):
+    """
+    Get common rotating file handler for logging.
+    """
+    kwargs.setdefault('maxBytes', 1024 * 1024 * 10) # 10 MB
+    kwargs.setdefault('backupCount', 10)
+
+    handler = RotatingFileHandler(
+        os.path.join(logging_dir, filename),
+        **kwargs
+    )
+
+    handler.setLevel(level)
+    handler.setFormatter(formatter)
+
+    return handler

@@ -1,10 +1,12 @@
-from operator import attrgetter
 from operator import itemgetter
 
+from file_forward.constant import LEG_IDENTIFIER_KEYS
+from file_forward.constant import OFP_VERSION_KEYS
 from file_forward.util import grouped
-from file_forward.util import leg_identifier_key
 from file_forward.util import max_in_group
-from file_forward.util import ofp_version_key
+
+leg_identifier_key = itemgetter(*LEG_IDENTIFIER_KEYS)
+ofp_version_key = itemgetter(*OFP_VERSION_KEYS)
 
 class AccumulateMixin:
     """
@@ -26,9 +28,6 @@ class LegIdentifierMixin:
     """
     Mixin method to generate iterable of legs by newest OFP version.
     """
-
-    _leg_identifier_key = attrgetter('leg_identifier')
-    _ofp_version_key = attrgetter('ofp_version')
 
     @staticmethod
     def _leg_identifier_key(file):

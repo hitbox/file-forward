@@ -1,6 +1,8 @@
 # NOTE:
 # During testing, a space was the only value that worked.
-DEFAULT_OPERATIONAL_SUFFIX = ' '
+# During production testing, empty string worked. It needs the dot separator
+# but and empty string.
+DEFAULT_OPERATIONAL_SUFFIX = ''
 
 LEG_IDENTIFIER_KEYS = [
     'airline_iata',

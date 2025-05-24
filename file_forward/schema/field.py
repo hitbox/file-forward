@@ -1,11 +1,11 @@
-import marshmallow as mm
-
+from marshmallow import ValidationError
 from marshmallow.fields import Date
+from marshmallow.fields import Field
 from marshmallow.fields import String
 
 from file_forward.constant import DEFAULT_OPERATIONAL_SUFFIX
 
-class TupleField(mm.fields.Field):
+class TupleField(Field):
     """
     Split a separated string into a fixed-length tuple, converting parts to a
     given type.
@@ -29,7 +29,7 @@ class TupleField(mm.fields.Field):
         parts = value.split(self.sep)
         parts += [self.fill] * (self.length - len(parts))
         if len(parts) > self.length:
-            raise mm.ValidationError(
+            raise ValidationError(
                 f'Expected length {self.length}, got {len(parts)}.')
         return tuple(map(self.type, parts))
 

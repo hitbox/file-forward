@@ -68,7 +68,7 @@ class ExcelOutput(
         ws = wb.active
 
         if self.header:
-            for current_col, cell_writer in enumerate(self.header, start=1)
+            for current_col, cell_writer in enumerate(self.header, start=1):
                 cell = ws.cell(row=1, column=current_col)
                 cell_writer(cell)
         else:

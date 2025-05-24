@@ -1,13 +1,19 @@
+import csv
+
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
+from sqlalchemy import select
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates
 
 from file_forward.util import raise_for_empty_string
 
 class CodePairMixin:
+    """
+    Mixin IATA and ICAO code pairs.
+    """
 
     @declared_attr
     def code_iata(cls):
@@ -28,3 +34,23 @@ class CodePairMixin:
             CheckConstraint("code_iata <> ''"),
             CheckConstraint("code_icao <> ''"),
         )
+
+    @classmethod
+    def load_many_from_csv(cls, path, iata_key, icao_key):
+        """
+        Load many instances from CSV.
+        """
+        with open(path, 'r', newline='') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for data in csv_reader:
+                kwargs = {
+                    'code_iata': data[iata_key],
+                    'code_icao': data[icao_key],
+                }
+                instance = cls(**kwargs)
+                yield instance
+
+    @classmethod
+    def one_by_iata(cls, session, iata_code):
+        stmt = select(cls).where(cls.code_iata == iata_code)
+        return session.scalars(stmt).one()

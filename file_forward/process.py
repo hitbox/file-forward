@@ -4,9 +4,17 @@ logger = logging.getLogger(__name__)
 
 class Process:
     """
+    Iterate files from scanner, write some output and archive file.
     """
 
-    def __init__(self, scanner, archive, output, silent=False):
+    def __init__(
+        self,
+        scanner,
+        archive,
+        output,
+        silent = False,
+        db_session = None,
+    ):
         """
         :param scanner:
             Iterable object that produces `SourceResult` objects.
@@ -22,52 +30,37 @@ class Process:
         self.archive = archive
         self.output = output
         self.silent = silent
+        self.db_session = db_session
 
-    def process_result(self, file):
+    def process_result(self, file_object):
         """
         Scrape and convert source data; write output; and archive.
         """
-        logger.info('[%s]:%s', file.client.name, file.path)
+        logger.info('[%s]:%s', file_object.client.name, file_object.path)
 
         # Write output.
-        self.output(file)
+        self.output(file_object)
 
         # Add source to archive.
-        self.archive.add(file)
+        self.archive.add(file_object)
 
     def __call__(self, process_name):
         """
         For each file produced by the scanner object, write some kind of output
         and archive.
         """
-        logger.info('begin %s', process_name)
-        processed = 0
-        exceptions = 0
-
-        for file in self.scanner:
-            # TODO
-            # - Avoid scraping and processing in scanner just to throw it away
-            #   in here.
-
+        for file_object in self.scanner:
             # Check if source already archived.
-            if file not in self.archive:
+            if file_object not in self.archive:
                 try:
-                    self.process_result(file)
+                    self.process_result(file_object)
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
                     logger.exception('An exception occurred.')
-                    self.archive.handle_exception(file, exc)
-                    exceptions += 1
+                    self.archive.handle_exception(file_object, exc)
                     if not self.silent:
                         raise
-                else:
-                    # Success
-                    processed += 1
 
         # Save archive after all source files.
         self.archive.save()
-
-        logger.info(
-            '%s processed %s with %s exceptions',
-            process_name, processed, exceptions)

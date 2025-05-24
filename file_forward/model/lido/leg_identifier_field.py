@@ -10,11 +10,11 @@ class LegIdentifierField(
     namedtuple(
         'LegIdentifierField',
         field_names = [
-            'airline_code',
+            'airline_code', # IATA
             'flight_number',
             'date_of_origin',
-            'departure_airport',
-            'destination_airport',
+            'departure_airport', # IATA
+            'destination_airport', # IATA
             'operational_suffix',
         ],
     ),
@@ -26,7 +26,7 @@ class LegIdentifierField(
     """
 
     __formatters__ = {
-        'date_of_origin': lambda date: date.strftime('%d%b%Y'),
+        'date_of_origin': lambda date: date.strftime('%d%b%y'),
     }
 
     # Rename scraped data to match this class' keyword arguments.
@@ -76,7 +76,6 @@ class LegIdentifierField(
         values = map(self._value, keys)
         # Convert to string and join on sep.
         string = sep.join(map(str, values))
-        logger.debug('%r', string)
         return string
 
     def __str__(self):

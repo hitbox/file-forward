@@ -1,10 +1,6 @@
 import logging
-import os
-import shutil
 
 from itertools import count
-
-import file_forward.path
 
 from .base import ArchiveBase
 
@@ -15,10 +11,16 @@ class MoveToArchive(ArchiveBase):
     Move file to archive it.
     """
 
-    def __init__(self, client, success_dest, exception_dest=None, rename_for_exists=False):
+    def __init__(
+        self,
+        client,
+        success_dest,
+        path_module,
+        rename_for_exists = False,
+    ):
         self.client = client
         self.success_dest = success_dest
-        self.exception_dest = exception_dest
+        self.path_module = path_module
         self.rename_for_exists = rename_for_exists
         self._moves = []
 
@@ -34,14 +36,13 @@ class MoveToArchive(ArchiveBase):
         Return directory for destination from source_result and string.
         """
         directory = str(directory).format(**source_result.path_data)
-        return os.path.join(directory, source_result.filename)
+        return self.path_module.join(directory, source_result.filename)
 
     def handle_exception(self, source_result, exc):
         """
         Move source for exception to another directory and write a traceback
         next to it, with a .traceback extension.
         """
-        self._moves.append((source_result, self.exception_dest, exc))
 
     def add(self, source_result):
         """
@@ -53,29 +54,29 @@ class MoveToArchive(ArchiveBase):
         """
         Move files to archive.
         """
-        for source_result, dstfmt, exc in self._moves:
-            # Source path.
-            src = source_result.path
+        with self.client as client:
+            for source_result, dstfmt, exc in self._moves:
+                # Source path.
+                src = source_result.path
 
-            # Resolve destination from format string.
-            dst = self._destination(dstfmt, source_result)
+                # Resolve destination from format string.
+                dst = self._destination(dstfmt, source_result)
 
-            # Handle existing destination path.
-            if self.client.exists(dst):
-                # Raise if not renaming.
-                if not self.rename_for_exists:
-                    raise FileExistsError(f'{dst} already exists.')
+                # Handle existing destination path.
+                if client.exists(dst):
+                    # Raise if not renaming.
+                    if not self.rename_for_exists:
+                        raise FileExistsError(f'{dst} already exists.')
 
-                # Insert integer to make destination unique.
-                for number in count(1):
-                    candidate = insert_before_ext(dst, f'.{number}')
-                    if not self.client.exists(candidate):
-                        dst = candidate
+                    # Insert integer before extension to make destination unique.
+                    for number in count(1):
+                        root, ext = self.path_module.splitext(dst)
+                        candidate = f'{root}.{number}{ext}'
 
-            self.client.move(src, dst)
+                        if not client.exists(candidate):
+                            dst = candidate
+                            logger.debug('destination renamed:%s', dst)
+                            break
 
-            if exc and self.exception_dest:
-                # Write traceback for exception.
-                tb_dst = self._destination(self.exception_dest, source_result)
-                with open(tb_dst + '.traceback', 'w', encoding='utf8') as traceback_file:
-                    traceback_file.write(exc)
+                # Move file to archive.
+                client.move(src, dst)

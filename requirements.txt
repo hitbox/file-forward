@@ -1,10 +1,14 @@
 click
+flask
+flask-sqlalchemy
 marshmallow
 openpyxl
 paramiko
 passlib
 pdfplumber
+psycopg
 pymqi
+pywin32
 sqlalchemy
 sqlalchemy-utils
 zxcvbn

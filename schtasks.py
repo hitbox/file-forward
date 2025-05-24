@@ -2,9 +2,10 @@ import argparse
 import datetime
 import os
 import subprocess
-import sys
 import tempfile
 import xml.etree.ElementTree as ET
+
+import win32security
 
 from xml.dom import minidom
 
@@ -66,6 +67,7 @@ class SchtasksXML:
         working_dir = None,
         description = None,
         trigger_type = 'Logon',
+        run_as_user = None,
     ):
         ET.register_namespace('', ns)
         E = NSElementMaker(namespace=ns)
@@ -76,6 +78,20 @@ class SchtasksXML:
         if description:
             registration_info.append(self.E('Description', text=description))
         task.append(registration_info)
+
+        principals = self.E('Principals')
+        # TODO
+        # - Support service account.
+        # - Will need admin privileges.
+        # - Decide what LogonType should be.
+        principal = self.E('Principal', attrib={'id': 'Author'})
+        if run_as_user:
+            principal.append(self.E('UserId', text=run_as_user))
+        # 
+        #principal.append(self.E('LogonType', text='None'))
+        principal.append(self.E('RunLevel', text='LeastPrivilege'))
+        principals.append(principal)
+        task.append(principals)
 
         triggers = self.E('Triggers')
         calendar = self.trigger_every_minutes(interval_minutes)
@@ -101,6 +117,10 @@ class SchtasksXML:
 
         return ET.ElementTree(task)
 
+
+def get_sid_for_username(username):
+    sid, domain, type = win32security.LookupAccountName(None, username)
+    return win32security.ConvertSidToStringSid(sid)
 
 def midnight(date=None):
     """
@@ -145,6 +165,7 @@ def register_task(
     working_dir = None,
     description = None,
     remove_exists = False,
+    run_as_user = None,
 ):
     """
     Create scheduled task to run every N minutes.
@@ -157,6 +178,7 @@ def register_task(
         interval_minutes,
         working_dir = working_dir,
         description = description,
+        run_as_user = run_as_user,
     )
 
     # Write XML to temporary file without deleting.

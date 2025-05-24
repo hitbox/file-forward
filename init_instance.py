@@ -14,9 +14,6 @@ instance_dirs = [
     'instance/logging',
 ]
 
-default_client_cert_path = 'instance/certs/client.kdb'
-default_server_cert_path = 'instance/certs/mqssl_stage.crt'
-
 class StrictPath(click.Path):
     """
     click.Path with extra path checks.
@@ -101,6 +98,8 @@ def input_kdb_path():
     """
     Prompt until non-existing .kdb path is given.
     """
+    default_client_cert_path = f'instance/certs/{get_hostname().lower()}.kdb'
+
     while True:
         kdb_path = click.prompt(
             'Path to client .kdb file',
@@ -171,7 +170,6 @@ def main(echo):
     kdb_path = input_kdb_path()
     server_cert_path = click.prompt(
         'Path to server trust cert',
-        default = default_server_cert_path,
         type = click.Path(
             exists = True, # Must exist.
         ),

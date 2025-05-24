@@ -3,7 +3,6 @@ import re
 
 from .base import ScanBase
 
-from file_forward.model import File
 from file_forward.model import SourceResult
 from file_forward.util import strict_update
 
