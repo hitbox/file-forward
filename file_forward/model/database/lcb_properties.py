@@ -1,3 +1,4 @@
+from markupsafe import escape
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -5,13 +6,36 @@ from sqlalchemy import String
 from sqlalchemy import event
 from sqlalchemy.orm import relationship
 
-from file_forward.model import Base
+from .base import Base
 
 class LCBPropertiesModel(Base):
     """
     """
 
     __tablename__ = 'lcb_properties'
+
+    __ui_meta__ = {
+        'lido_meta': {
+            'label': 'Lido Meta',
+            'formatter': escape,
+        },
+        'lido_application_id': {
+        },
+        'lido_business_id': {
+        },
+        'lido_client_id': {
+        },
+        'lido_customer_id': {
+        },
+        'lido_leg_identifier': {
+        },
+        'lido_msg_version': {
+        },
+        'lido_time_stamp': {
+        },
+        'lido_trace_id': {
+        },
+    }
 
     id = Column(Integer, primary_key=True)
 
@@ -38,8 +62,8 @@ def on_lido_meta_set(target, value, oldvalue, initiator):
     """
     On LCBPropertiesModel.lido_meta set convert to model.
     """
-    from .lido.lido_meta_property import LidoMetaProperty
-    from .lido_meta_property import LidoMetaPropertyModel
+    from file_forward.model.database import LidoMetaPropertyModel
+    from file_forward.model.lido import LidoMetaProperty
 
     if isinstance(value, LidoMetaProperty):
         # Convert to model instance for database.

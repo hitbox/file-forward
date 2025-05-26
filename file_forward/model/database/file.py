@@ -1,3 +1,4 @@
+import datetime
 import enum
 
 from sqlalchemy import CheckConstraint
@@ -12,6 +13,7 @@ from sqlalchemy.orm import validates
 from file_forward.util import raise_for_empty_string
 
 from .base import Base
+from .mixin import UIMixin
 
 class ProcessingState(enum.Enum):
 
@@ -21,9 +23,24 @@ class ProcessingState(enum.Enum):
     reappeared = 'reappeared'
 
 
-class File(Base):
+class File(Base, UIMixin):
 
     __tablename__ = 'file'
+
+    __ui_meta__ = {
+        'path': {
+            'label': 'Path',
+            'td_attrs': {
+                'class': 'data',
+            },
+        },
+        'status': {
+            'label': 'Status',
+            'td_attrs': {
+                'class': 'data',
+            },
+        },
+    }
 
     id = Column(Integer, primary_key=True)
 
@@ -37,6 +54,7 @@ class File(Base):
     seen_at = Column(
         DateTime,
         nullable = False,
+        default = datetime.datetime.now,
         doc = 'Original seen at datetime of file.',
     )
 
@@ -67,6 +85,12 @@ class File(Base):
     @validates('path', 'moved_to')
     def validate_strings(self, key, value):
         return raise_for_empty_string(key, value)
+
+    @classmethod
+    def from_source_result(cls, file_obj):
+        return cls(
+            path = file_obj.path,
+        )
 
     __table_args__ = (
         CheckConstraint("path <> ''"),

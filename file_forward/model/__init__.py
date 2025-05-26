@@ -1,18 +1,26 @@
 from . import lido
-from .airline import Airline
-from .airport import Airport
-from .base import Base
-from .credential import Credential
-from .document import DocumentModel
-from .file import File
-from .file import ProcessingState
-from .lcb_header import LCBHeaderModel
-from .lcb_message import LCBMessageModel
-from .lcb_properties import LCBPropertiesModel
-from .leg_identifier import LegIdentifierModel
-from .lido_meta_property import LidoMetaPropertyModel
-from .ofp_version import OFPVersion
-from .rowifier import Rowifier
-from .server import Server
-from .source_result import SourceResult
-from .ssl_key_repository import SSLKeyRepository
+from .database import Airline
+from .database import Airport
+from .database import Base
+from .database import Credential
+from .database import DocumentModel
+from .database import File
+from .database import LCBHeaderModel
+from .database import LCBMessageModel
+from .database import LCBPropertiesModel
+from .database import LegIdentifierModel
+from .database import LidoMetaPropertyModel
+from .database import OFPVersion
+from .database import ProcessingState
+from .database import Rowifier
+from .database import SSLKeyRepository
+from .database import Server
+from .database import SourceResult
+
+def get_models():
+    from inspect import isclass
+
+    return {
+        name: obj for name, obj in globals().items()
+        if isclass(obj) and obj is not Base and issubclass(obj, Base)
+    }

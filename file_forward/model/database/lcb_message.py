@@ -1,10 +1,11 @@
+from markupsafe import escape
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
-from file_forward.model import Base
+from .base import Base
 from file_forward.model import lido as lidomod
 
 class LCBMessageModel(Base):
@@ -13,6 +14,21 @@ class LCBMessageModel(Base):
     """
 
     __tablename__ = 'lcb_message'
+
+    __ui_meta__ = {
+        'lcb_header': {
+            'label': 'LCB Header',
+            'formatter': escape,
+        },
+        'lcb_properties': {
+            'label': 'LCB Properties',
+            'formatter': escape,
+        },
+        'file': {
+            'label': 'File',
+            'formatter': escape,
+        },
+    }
 
     id = Column(Integer, primary_key=True)
 
@@ -30,7 +46,12 @@ class LCBMessageModel(Base):
         nullable = False,
     )
 
-    lcb_properties = relationship('LCBPropertiesModel')
+    lcb_properties = relationship(
+        'LCBPropertiesModel',
+    )
+
+    file_id = Column(ForeignKey('file.id'))
+    file = relationship('File')
 
     @classmethod
     def from_source_result(cls, file_obj):

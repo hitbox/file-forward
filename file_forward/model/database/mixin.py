@@ -17,11 +17,29 @@ class CodePairMixin:
 
     @declared_attr
     def code_iata(cls):
-        return Column(String, nullable=False)
+        return Column(
+            String,
+            nullable = False,
+            info = {
+                'label': 'IATA',
+                'td_attrs': {
+                    'class': 'data',
+                },
+            },
+        )
 
     @declared_attr
     def code_icao(cls):
-        return Column(String, nullable=False)
+        return Column(
+            String,
+            nullable = False,
+            info = {
+                'label': 'ICAO',
+                'td_attrs': {
+                    'class': 'data',
+                },
+            },
+        )
 
     @validates('code_iata', 'code_icao')
     def validate_strings(self, key, value):
@@ -52,5 +70,32 @@ class CodePairMixin:
 
     @classmethod
     def one_by_iata(cls, session, iata_code):
+        """
+        Get exactly one instance by IATA code, or raise.
+        """
         stmt = select(cls).where(cls.code_iata == iata_code)
         return session.scalars(stmt).one()
+
+
+class UIMixin:
+    """
+    Provide iterators for which attributes should be shown on user interfaces.
+    """
+
+    @declared_attr
+    def __ui_meta__(cls):
+        return {}
+
+    @classmethod
+    def get_ui_fields(cls):
+        return list(cls.__ui_meta__)
+
+    def get_ui_data(self):
+        result = {}
+        for field, opts in self.__ui_meta__.items():
+            value = getattr(self, field)
+            formatter = opts.get('formatter')
+            if formatter:
+                value = formatter(value)
+            result[field] = value
+        return result

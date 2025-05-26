@@ -3,7 +3,7 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
-from file_forward.model import Base
+from .base import Base
 
 class LCBHeaderModel(Base):
     """
@@ -11,6 +11,15 @@ class LCBHeaderModel(Base):
     """
 
     __tablename__ = 'lcb_header'
+
+    __ui_meta__ = {
+        'jms_type': {
+            'label': 'JMS Type',
+        },
+        'jms_expiration': {
+            'label': 'JMS Expiration',
+        },
+    }
 
     id = Column(Integer, primary_key=True)
 

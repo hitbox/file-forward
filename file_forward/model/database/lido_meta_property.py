@@ -1,17 +1,24 @@
+from markupsafe import escape
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
-from sqlalchemy import String
 from sqlalchemy import event
 from sqlalchemy.orm import relationship
 
-from file_forward.model import Base
+from .base import Base
 
 class LidoMetaPropertyModel(Base):
     """
+    Object describes flight leg to attach documents to.
     """
 
     __tablename__ = 'lido_meta_property'
+
+    __ui_meta__ = {
+        'leg_identifier' {
+            'formatter': escape,
+        },
+    }
 
     id = Column(Integer, primary_key=True)
 
@@ -32,8 +39,11 @@ class LidoMetaPropertyModel(Base):
 
 @event.listens_for(LidoMetaPropertyModel.leg_identifier, 'set', retval=True)
 def on_leg_identifier_set(target, value, oldvalue, initiator):
+    """
+    Change value to LegIdentifierModel.
+    """
     from .leg_identifier import LegIdentifierModel
-    from .lido.leg_identifier_field import LegIdentifierField
+    from file_forward.model.lido import LegIdentifierField
 
     if isinstance(value, LegIdentifierField):
         # Convert namedtuple to database model
@@ -44,9 +54,10 @@ def on_leg_identifier_set(target, value, oldvalue, initiator):
 @event.listens_for(LidoMetaPropertyModel.documents, 'append', retval=True)
 def on_document_append(target, value, initiator):
     """
+    Change value to DocumentModel.
     """
     from .document import DocumentModel
-    from .lido.document import Document
+    from file_forward.model.lido import Document
 
     if isinstance(value, Document):
         # Convert namedtuple to database model
@@ -57,6 +68,7 @@ def on_document_append(target, value, initiator):
 @event.listens_for(LidoMetaPropertyModel.documents, 'bulk_replace', retval=True)
 def on_document_append(target, document_list, initiator):
     """
+    Change values to DocumentModel objects.
     """
     from .document import DocumentModel
     return [DocumentModel.from_message_document(document) for document in document_list]

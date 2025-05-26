@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+}
+
+table.nice {
+    border-collapse: collapse;
+}
+
+table.nice,
+table.nice th,
+table.nice td {
+    border: 1px solid;
+    padding: 1ch 2ch;
+}
+
+.data {
+    font-family: monospace;
+    font-size: 1rem;
+}
