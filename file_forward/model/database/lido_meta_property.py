@@ -15,7 +15,7 @@ class LidoMetaPropertyModel(Base):
     __tablename__ = 'lido_meta_property'
 
     __ui_meta__ = {
-        'leg_identifier' {
+        'leg_identifier': {
             'formatter': escape,
         },
     }
