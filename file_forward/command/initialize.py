@@ -27,6 +27,7 @@ def add_parser(argument_parser):
     )
     init_db_command.set_defaults(func=init_db)
     add_config_option(init_db_command)
+    init_db_command.add_argument('--seed', action='store_true')
 
 def init_db(args):
     """
@@ -39,7 +40,8 @@ def init_db(args):
     engine = create_engine(database_uri)
     Base.metadata.create_all(engine)
 
-    seed_function = getattr(appconfig, 'seed', None)
-    if seed_function:
-        with Session(engine) as session:
-            seed_function(session)
+    if args.seed:
+        seed_function = getattr(appconfig, 'seed', None)
+        if seed_function:
+            with Session(engine) as session:
+                seed_function(session)
