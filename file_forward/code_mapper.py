@@ -18,6 +18,9 @@ class CodeMapper:
         self.iata_to_icao = iata_to_icao or invert_dict(icao_to_iata, strict=True)
         self.icao_to_iata = icao_to_iata or invert_dict(iata_to_icao, strict=True)
 
+        self.iata_codes = set(self.iata_to_icao.keys())
+        self.icao_codes = set(self.icao_to_iata.keys())
+
     @classmethod
     def from_csv(cls, filename, iata_fieldname, icao_fieldname):
         """
