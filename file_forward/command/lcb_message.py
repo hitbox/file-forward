@@ -1,4 +1,3 @@
-import logging
 import os
 
 import openpyxl
@@ -12,8 +11,6 @@ from file_forward.configlib import add_config_option
 from file_forward.configlib import engine_from_config
 from file_forward.model import LCBMessageFilter
 from file_forward.util import load_pyfile
-
-logger = logging.getLogger(__name__)
 
 HEADER = ['airline_code', 'date_of_origin', 'flight_number', 'departure_airport', 'destination_airport']
 
@@ -47,6 +44,23 @@ def add_parser(argument_parser):
     )
     export_command_parser.set_defaults(func=export_lcb_message_filter)
 
+def get_last_column_letter(ws):
+    return get_column_letter(ws.max_column)
+
+def get_used_range(ws):
+    """
+    Return the Excel-style used range string of a worksheet, e.g., 'A1:D20'.
+    """
+    min_row = ws.min_row
+    min_col = ws.min_column
+    max_row = ws.max_row
+    max_col = ws.max_column
+
+    start_cell = f"{get_column_letter(min_col)}{min_row}"
+    end_cell = f"{get_column_letter(max_col)}{max_row}"
+
+    return f"{start_cell}:{end_cell}"
+
 def export_lcb_message_filter(args):
     """
     Export LCB message filter data to a file.
@@ -66,10 +80,12 @@ def export_lcb_message_filter(args):
         # Freeze first row.
         ws.freeze_panes = 'A2'
 
+        # Add header with bold font.
         ws.append(HEADER)
         for cell in ws[1]:
             cell.font = bold_font
 
+        # Select and append rows.
         stmt = (
             select(LCBMessageFilter)
             .order_by(
@@ -81,7 +97,7 @@ def export_lcb_message_filter(args):
             ws.append(row)
 
         # Add auto-filter
-        ws.auto_filter.ref = f'A1:E{ws.max_row}'
+        ws.auto_filter.ref = get_used_range(ws)
 
         # Set column widths. These were picked manually.
         ws.column_dimensions['A'].width = 14
