@@ -30,7 +30,10 @@ class LidoMetaPropertyModel(Base):
 
     leg_identifier = relationship('LegIdentifierModel')
 
-    documents = relationship('DocumentModel')
+    documents = relationship(
+        'DocumentModel',
+        back_populates = 'lido_meta_property',
+    )
 
     @classmethod
     def from_lido_meta_property(cls, lido_meta_property):

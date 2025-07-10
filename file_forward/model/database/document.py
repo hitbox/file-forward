@@ -49,6 +49,7 @@ class DocumentModel(Base, UIMixin):
 
     lido_meta_property = relationship(
         'LidoMetaPropertyModel',
+        back_populates = 'documents',
     )
 
     @classmethod
