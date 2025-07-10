@@ -41,6 +41,7 @@ def load_from_schedule(args):
     engine = engine_from_config(appconfig)
 
     with Session(engine) as session:
+        # Set ContextVar data for methods deep inside calls that need session.
         context.set_session_context(session)
 
         scanner = appconfig.local_schedule_pdf_scan
