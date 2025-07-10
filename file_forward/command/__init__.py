@@ -1,4 +1,5 @@
 from . import initialize
+from . import lcb_message
 from . import load
 from . import process
 

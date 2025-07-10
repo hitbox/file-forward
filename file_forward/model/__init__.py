@@ -6,6 +6,7 @@ from .database import Credential
 from .database import DocumentModel
 from .database import File
 from .database import LCBHeaderModel
+from .database import LCBMessageFilter
 from .database import LCBMessageModel
 from .database import LCBPropertiesModel
 from .database import LegIdentifierModel

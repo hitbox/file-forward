@@ -7,6 +7,7 @@ from .file import File
 from .file import ProcessingState
 from .lcb_header import LCBHeaderModel
 from .lcb_message import LCBMessageModel
+from .lcb_message_filter import LCBMessageFilter
 from .lcb_properties import LCBPropertiesModel
 from .leg_identifier import LegIdentifierModel
 from .lido_meta_property import LidoMetaPropertyModel
