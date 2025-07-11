@@ -11,9 +11,7 @@ class LogOutput(OutputBase):
     Write output to logs.
     """
 
-    def __init__(self, message_builder=None, summarize_data=True, context=None):
-        self.message_builder = message_builder
-        self.summarize_data = summarize_data
+    def __init__(self, context=None):
         self.context = context
 
     def __call__(self, file):
@@ -21,15 +19,10 @@ class LogOutput(OutputBase):
         Log file object as if it were written to some output.
         """
         lcb_message = LCBMessage.from_source_result(file, self.context)
+        logger.debug('%s', lcb_message)
 
-        header, separator, zipped = self.message_builder.items(file)
-        message_string = header + separator
-        if self.summarize_data:
-            message_string += f'[DATA: {len(file.file_data)}]'
-        else:
-            message_string = message_string.encode() + file.file_data
-
-        logger.debug('%s:%s:%s', file.client.name, file.path, message_string)
+        message_fields = lcb_message.get_fields()
+        logger.debug('%s', message_fields)
 
     def finalize(self):
         pass
