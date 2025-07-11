@@ -2,7 +2,7 @@ from .base import ArchiveBase
 
 class NullArchive(ArchiveBase):
     """
-    The never archived archive.
+    The never archived archive. Exists to satisfy the interface.
     """
 
     def __init__(self):
