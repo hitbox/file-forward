@@ -1,16 +1,4 @@
 {% extends "skeleton.html" %}
 
 
-{% if title %}{% block title %}{{ title }}{% endblock %}{% endif %}
-
-
-{% block main %}
-    {% if subtitle %}<h2>{{ subtitle }}</h2>{% endif %}
-    <nav>
-        <ul>{% for name, model in models|items %}
-            <li>
-                <a href="{{ url_for(model_endpoint, model_name=name) }}">{{ name }}</a>
-            </li>{% endfor %}
-        </ul>
-    </nav>
-{% endblock %}
+{% block main %}{% endblock %}

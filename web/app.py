@@ -1,4 +1,7 @@
+from zoneinfo import ZoneInfo
+
 from flask import Flask
+from flask import current_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from . import extension
@@ -12,13 +15,17 @@ def create_app():
     extension.init_app(app)
     view.init_app(app)
 
-    # TODO
-    # - Yet another web app
-    # - Display my database info
-    # - Probably need another load that associates files to messages
-    # - Maybe missing other relevant info
-    # - Need sent_at datetime for messages that can be none
-    # - Add database step to LCBOutput class
+    @app.template_filter('localize')
+    def localize(dt):
+        """
+        Jinja filter to localize to configured timezone.
+        """
+        timezone = current_app.config.get('FILE_FORWARD_TIMEZONE', 'UTC')
+        timezone = ZoneInfo(timezone)
+
+        fmt = current_app.config['FILE_FORWARD_DTFORMAT']
+        localdt =  dt.astimezone(timezone)
+        return localdt.strftime(fmt)
 
     if 'APP_URL_PREFIX' in app.config:
         url_prefix = app.config['APP_URL_PREFIX'].rstrip('/')

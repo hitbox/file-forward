@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+
+{% block main %}
+    <p>Data scraped from logging</p>
+    <p>{{ config.FILE_FORWARD_TIMEZONE }}</p>
+    <ul>{% for obj in objects %}
+        <li>
+            <div>{{ obj.logging_datetime }}</div>
+            <div>{{ obj.logging_datetime|localize }}</div>
+        </li>{% endfor %}
+    </ul>
+{% endblock %}
