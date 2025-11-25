@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 
@@ -5,6 +6,8 @@ from .base import ScanBase
 
 from file_forward.model import SourceResult
 from file_forward.util import strict_update
+
+logger = logging.getLogger(__name__)
 
 class Scan(ScanBase):
     """
@@ -44,12 +47,14 @@ class Scan(ScanBase):
                     file_data = client.read(path, mode='rb')
 
                     if self.scrape:
-                        # Scrape file data, strictly adding more data.
+                        # Scrape file data, adding it to the path data, raising
+                        # for conflicting keys.
                         scrape_data = self.scrape(file_data)
                         if not scrape_data:
                             raise ValueError('No data returned from scraper.')
                         # Update path_data, raising for existing keys.
                         strict_update(path_data, scrape_data)
+                        logger.debug('scrape:%r', path_data)
 
                     if self.schema:
                         # Update types.

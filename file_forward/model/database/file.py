@@ -1,6 +1,9 @@
 import datetime
 import enum
 
+from datetime import datetime
+from datetime import timezone
+
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
 from sqlalchemy import DateTime
@@ -8,6 +11,7 @@ from sqlalchemy import Enum
 from sqlalchemy import Float
 from sqlalchemy import Integer
 from sqlalchemy import String
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 
 from file_forward.util import raise_for_empty_string
@@ -52,9 +56,9 @@ class File(Base, UIMixin):
     )
 
     seen_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable = False,
-        default = datetime.datetime.now,
+        default = lambda: datetime.now(timezone.utc),
         doc = 'Original seen at datetime of file.',
     )
 
@@ -80,6 +84,11 @@ class File(Base, UIMixin):
         String,
         nullable = True,
         doc = 'The path the file was moved to after processing.',
+    )
+
+    lcb_messages = relationship(
+        'LCBMessageModel',
+        back_populates = 'file',
     )
 
     @validates('path', 'moved_to')

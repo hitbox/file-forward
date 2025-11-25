@@ -1,4 +1,6 @@
 from marshmallow import Schema
+from marshmallow.fields import DateTime
+from marshmallow.fields import Integer
 from marshmallow.fields import String
 
 from .field import flight_date_field
@@ -13,3 +15,14 @@ class DataMixin:
 
     ofp_version = ofp_version_field(load_default=(0, 0, 0))
     operational_suffix = operational_suffix_field()
+
+
+class LogLineMixin:
+    """
+    """
+
+    datetime = DateTime()
+    level_name = String()
+    level_integer = Integer()
+    logger_name = String()
+    message = String()

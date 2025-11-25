@@ -39,13 +39,20 @@ class LCBPropertiesModel(Base):
 
     id = Column(Integer, primary_key=True)
 
+    lcb_message = relationship(
+        'LCBMessageModel',
+        back_populates = 'lcb_properties',
+    )
+
     lido_meta_id = Column(
         Integer,
         ForeignKey('lido_meta_property.id'),
         nullable = False,
     )
 
-    lido_meta = relationship('LidoMetaPropertyModel')
+    lido_meta = relationship(
+        'LidoMetaPropertyModel',
+    )
 
     lido_application_id = Column(String, nullable=True)
     lido_business_id = Column(String, nullable=True)

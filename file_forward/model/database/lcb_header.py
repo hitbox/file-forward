@@ -32,3 +32,8 @@ class LCBHeaderModel(Base):
             'Contains message’s expiration timestamp in milliseconds.'
             ' Default expiration is set to 24h. Sample: 1546344000000',
     )
+
+    lcb_message = relationship(
+        'LCBMessageModel',
+        back_populates = 'lcb_header',
+    )

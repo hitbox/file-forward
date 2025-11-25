@@ -1,4 +1,5 @@
 from . import lido
+from .database import AircraftRegistration
 from .database import Airline
 from .database import Airport
 from .database import Base
@@ -11,6 +12,7 @@ from .database import LCBMessageModel
 from .database import LCBPropertiesModel
 from .database import LegIdentifierModel
 from .database import LidoMetaPropertyModel
+from .database import MessageCommitted
 from .database import OFPVersion
 from .database import ProcessingState
 from .database import Rowifier

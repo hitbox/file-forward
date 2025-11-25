@@ -1,2 +1,4 @@
 from .asm_filename_schema import ASMFilenameSchema
+from .message_committed import MessageCommittedSchema
 from .opticlimb_filename_schema import OptiClimbFilenameSchema
+from .scan_scrape_schema import ScanScrapeSchema

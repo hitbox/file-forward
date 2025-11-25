@@ -13,7 +13,7 @@ class Process:
         archive,
         output,
         silent = False,
-        db_session = None,
+        database_uri = None,
     ):
         """
         :param scanner:
@@ -30,7 +30,7 @@ class Process:
         self.archive = archive
         self.output = output
         self.silent = silent
-        self.db_session = db_session
+        self.database_uri = database_uri
 
     def process_result(self, file_object):
         """

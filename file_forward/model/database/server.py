@@ -1,8 +1,4 @@
 from sqlalchemy import Column
-from sqlalchemy import DateTime
-from sqlalchemy import Enum
-from sqlalchemy import Float
-from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Text
@@ -17,16 +13,23 @@ class Server(Base):
     __tablename__ = 'server'
 
     id = Column(Integer, primary_key=True)
+
     host = Column(String, unique=True, doc='Host name.')
+
     port = Column(Integer, doc='Port number.')
 
     name = Column(
         String,
         unique = True,
+        nullable = False,
         doc = 'Short descriptive name for host.',
     )
 
-    description = Column(Text, nullable=True, doc='Server description.')
+    description = Column(
+        Text,
+        nullable = True,
+        doc = 'Server description.',
+    )
 
     @validates('name', 'description')
     def validate_string(self, key, value):

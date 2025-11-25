@@ -1,10 +1,15 @@
 import logging
 
 from collections import namedtuple
+from datetime import datetime
 
 from .base import LidoBase
 
 logger = logging.getLogger(__name__)
+
+DATE_OF_ORIGIN_FORMAT = '%d%b%y'
+
+SEP = '.'
 
 class LegIdentifierField(
     namedtuple(
@@ -26,7 +31,11 @@ class LegIdentifierField(
     """
 
     __formatters__ = {
-        'date_of_origin': lambda date: date.strftime('%d%b%y'),
+        'date_of_origin': lambda date: date.strftime(DATE_OF_ORIGIN_FORMAT),
+    }
+
+    __converters__ = {
+        'date_of_origin': lambda string: datetime.strptime(string, DATE_OF_ORIGIN_FORMAT).date(),
     }
 
     # Rename scraped data to match this class' keyword arguments.
@@ -36,6 +45,16 @@ class LegIdentifierField(
         'departure_iata': 'departure_airport',
         'destination_iata': 'destination_airport',
     }
+
+    @classmethod
+    def from_string(cls, string):
+        """
+        Instance from formatted string, as by _as_string.
+        """
+        kwargs = dict(zip(cls._fields, string.split(SEP)))
+        for key, type_ in cls.__converters__.items():
+            kwargs[key] = type_(kwargs[key])
+        return cls(**kwargs)
 
     @classmethod
     def from_source_result(cls, source_result, context):
@@ -65,7 +84,7 @@ class LegIdentifierField(
             value = self.__formatters__[key](value)
         return value
 
-    def _as_string(self, sep='.'):
+    def _as_string(self):
         """
         Format leg identifier as the character separated string, that the
         LidoMeta property/element expects.
@@ -75,7 +94,7 @@ class LegIdentifierField(
         # Resolve keys' values.
         values = map(self._value, keys)
         # Convert to string and join on sep.
-        string = sep.join(map(str, values))
+        string = SEP.join(map(str, values))
         return string
 
     def __str__(self):

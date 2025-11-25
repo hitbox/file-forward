@@ -1,5 +1,6 @@
 import logging
 
+from file_forward.model import LCBMessageModel
 from file_forward.model.lido import LCBMessage
 from file_forward.util import message_with_properties
 from file_forward.util import zip_bytes
@@ -68,15 +69,20 @@ class LCBOutput(
         message_fields = lcb_message.get_fields()
 
         # Filter function decides if message is sent.
-        if self.filter_func(lcb_message):
+        if not self.filter_func(lcb_message):
+            # Log message not sent.
+            logger.debug('fields rejected by filter: %s', message_fields)
+        else:
             # Send JMS message.
             message_descriptor = self.put_message_jms(message_fields, data)
             logger.debug(
-                'message committed:host=%s:queue=%s:fields=%s',
-                self.client.host, self.client.queue_name, message_fields)
-        else:
-            # Log message not sent.
-            logger.debug('fields rejected by filter: %s', message_fields)
+                'message committed:%r',
+                {
+                    'host': self.client.host,
+                    'queue': self.client.queue_name,
+                    'fields': message_fields,
+                }
+            )
 
     def finalize(self):
         """

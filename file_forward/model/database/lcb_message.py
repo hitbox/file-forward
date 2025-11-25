@@ -38,7 +38,10 @@ class LCBMessageModel(Base):
         nullable = False,
     )
 
-    lcb_header = relationship('LCBHeaderModel')
+    lcb_header = relationship(
+        'LCBHeaderModel',
+        back_populates = 'lcb_message',
+    )
 
     lcb_properties_id = Column(
         Integer,
@@ -48,10 +51,15 @@ class LCBMessageModel(Base):
 
     lcb_properties = relationship(
         'LCBPropertiesModel',
+        back_populates = 'lcb_message',
     )
 
     file_id = Column(ForeignKey('file.id'))
-    file = relationship('File')
+
+    file = relationship(
+        'File',
+        back_populates = 'lcb_messages',
+    )
 
     @classmethod
     def from_source_result(cls, file_obj):
